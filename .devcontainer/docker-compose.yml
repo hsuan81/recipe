@@ -34,6 +34,7 @@ services:
       POSTGRESQL_USERNAME: postgresuser
       POSTGRESQL_PASSWORD: postgrespassword
       POSTGRESQL_DATABASE: postgres
+    volumes: database-data:/var/lib/postgresql/data/
 
   pgadmin:
     image: dpage/pgadmin4:latest

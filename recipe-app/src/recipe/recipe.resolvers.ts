@@ -42,7 +42,7 @@ export class RecipeResolvers {
   @Mutation(returns => Recipe)
   // @UseGuards(GqlAuthGuard)
   async updateRecipe(
-    @Args('id') id: string,
+    @Args('id', { type: () => ID }) id: string,
     @Args('content') content: RecipeInput,
   ): Promise<Recipe> {
     return this.recipeService.update(id, content)
@@ -50,7 +50,9 @@ export class RecipeResolvers {
 
   @Mutation(returns => Recipe)
   // @UseGuards(GqlAuthGuard)
-  async deleteRecipe(@Args('id') id: string): Promise<Recipe> {
+  async deleteRecipe(
+    @Args('id', { type: () => ID }) id: string,
+  ): Promise<Recipe> {
     return this.recipeService.delete(id)
   }
 }

@@ -6,4 +6,4 @@ import { BasketsService } from './baskets.service'
   providers: [BasketsService],
   imports: [PrismaModule],
 })
-export class BasketModule {}
+export class BasketsModule {}

@@ -49,15 +49,15 @@ type User {
 type Query {
   getRecipeById(id: ID!): Recipe!
   getLatestRecipes: [Recipe!]!
-  getUserById(id: String!): User!
+  getUserById(id: ID!): User!
   getUserByEmail(email: String!): User!
   me: User!
 }
 
 type Mutation {
   createRecipe(content: RecipeInput!): Recipe!
-  updateRecipe(id: String!, content: RecipeInput!): Recipe!
-  deleteRecipe(id: String!): Recipe!
+  updateRecipe(id: ID!, content: RecipeInput!): Recipe!
+  deleteRecipe(id: ID!): Recipe!
   createUser(input: UserInput!): User!
 }
 

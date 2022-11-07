@@ -9,11 +9,10 @@ import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core'
 import { UsersModule } from './users/users.module'
 import { AuthModule } from './auth/auth.module'
 import { ConfigModule } from '@nestjs/config'
-import { BasketModule } from './baskets/basket.module'
+import { BasketsModule } from './baskets/baskets.module'
 
 @Module({
   imports: [
-    RecipeModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       /* Schema first setting for Graphql*/
@@ -29,9 +28,10 @@ import { BasketModule } from './baskets/basket.module'
       playground: false,
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
     }),
+    RecipeModule,
     UsersModule,
     AuthModule,
-    BasketModule,
+    BasketsModule,
     ConfigModule.forRoot(),
   ],
   controllers: [AppController],

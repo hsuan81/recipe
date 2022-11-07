@@ -7,6 +7,7 @@ import {
   Args,
   Subscription,
   Context,
+  ID,
 } from '@nestjs/graphql'
 import { CurrentUser } from 'src/auth/auth.decorator'
 import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard'
@@ -21,7 +22,9 @@ export class UsersResolvers {
   constructor(private readonly usersService: UsersService) {}
 
   @Query(returns => User)
-  async getUserById(@Args('id') id: string): Promise<User | null> {
+  async getUserById(
+    @Args('id', { type: () => ID }) id: string,
+  ): Promise<User | null> {
     return this.usersService.findOneById(id)
   }
 
