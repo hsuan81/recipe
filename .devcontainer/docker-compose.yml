@@ -34,8 +34,8 @@ services:
       POSTGRESQL_USERNAME: postgresuser
       POSTGRESQL_PASSWORD: postgrespassword
       POSTGRESQL_DATABASE: postgres
-    # volumes: 
-    #   - recipe-db:/var/lib/postgresql/data/
+    volumes:
+      - ..:/var/lib/postgresql/data/:delegated
 
   pgadmin:
     image: dpage/pgadmin4:latest

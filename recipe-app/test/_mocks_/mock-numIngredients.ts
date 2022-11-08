@@ -5,6 +5,6 @@ export const mockNumIngreds: NumIngredientOnRecipe[] = [
     ingredientId: 'testingredient0',
     recipeId: 'testrecipe0',
     unit: 'g',
-    value: '50',
+    value: '100',
   },
 ]

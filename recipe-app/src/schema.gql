@@ -46,12 +46,34 @@ type User {
   hashedRt: String
 }
 
+"""contain access token and refresh token"""
+type Tokens {
+  access_token: String!
+  refresh_token: String!
+}
+
+"""contain user info and access token and refresh token"""
+type LoginResult {
+  user: User!
+  tokens: Tokens!
+}
+
+"""
+basket which is a list of all ingredients and their amount for preparation
+"""
+type Basket {
+  id: ID!
+  userId: ID!
+  ingredientsNum: [IngredientNum]!
+}
+
 type Query {
   getRecipeById(id: ID!): Recipe!
   getLatestRecipes: [Recipe!]!
   getUserById(id: ID!): User!
   getUserByEmail(email: String!): User!
   me: User!
+  getBasketByUserId(userId: ID!): Basket!
 }
 
 type Mutation {
@@ -59,11 +81,17 @@ type Mutation {
   updateRecipe(id: ID!, content: RecipeInput!): Recipe!
   deleteRecipe(id: ID!): Recipe!
   createUser(input: UserInput!): User!
+  login(loginAttempt: UserInput!): LoginResult!
+  logout(userId: String!): Boolean!
+  signUp(signUpInput: UserInput!): Tokens!
+  refreshTokens(userId: String!, rt: String!): Tokens!
+  addRecipeToBasket(userId: ID!, recipeId: ID!): Basket!
+  removeRecipeFromBasket(userId: ID!, recipeId: ID!): Basket!
 }
 
 input RecipeInput {
   title: String!
-  authorId: String!
+  authorId: ID!
   difficulty: Difficulty!
   ingredientsNum: [IngredientNumInput!]!
   instructions: [String!]!
