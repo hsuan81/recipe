@@ -1,28 +1,16 @@
-/*
-  Warnings:
-
-  - The primary key for the `User` table will be changed. If it partially fails, the table could be left without primary key constraint.
-  - You are about to drop the `Post` table. If the table is not empty, all the data it contains will be lost.
-  - Added the required column `password` to the `User` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- CreateEnum
 CREATE TYPE "Difficulty" AS ENUM ('DIFFICULT5', 'DIFFICULT4', 'MODERATE3', 'EASY2', 'EASY1', 'NOSCALE');
 
--- DropForeignKey
-ALTER TABLE "Post" DROP CONSTRAINT "Post_authorId_fkey";
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "name" TEXT,
+    "password" TEXT NOT NULL,
+    "hashedRt" TEXT,
 
--- AlterTable
-ALTER TABLE "User" DROP CONSTRAINT "User_pkey",
-ADD COLUMN     "hashedRt" TEXT,
-ADD COLUMN     "password" TEXT NOT NULL,
-ALTER COLUMN "id" DROP DEFAULT,
-ALTER COLUMN "id" SET DATA TYPE TEXT,
-ADD CONSTRAINT "User_pkey" PRIMARY KEY ("id");
-DROP SEQUENCE "User_id_seq";
-
--- DropTable
-DROP TABLE "Post";
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Basket" (
@@ -38,11 +26,11 @@ CREATE TABLE "Recipe" (
     "authorId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3),
     "difficulty" "Difficulty" NOT NULL DEFAULT 'NOSCALE',
     "instructions" TEXT[],
     "likesNum" INTEGER NOT NULL DEFAULT 0,
-    "serving" INTEGER,
+    "serving" INTEGER NOT NULL DEFAULT 0,
     "viewrs" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "Recipe_pkey" PRIMARY KEY ("id")
@@ -87,7 +75,13 @@ CREATE TABLE "_FavoriteToRecipe" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Basket_userId_key" ON "Basket"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Recipe_authorId_title_key" ON "Recipe"("authorId", "title");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Ingredient_name_key" ON "Ingredient"("name");
@@ -117,7 +111,7 @@ ALTER TABLE "Recipe" ADD CONSTRAINT "Recipe_authorId_fkey" FOREIGN KEY ("authorI
 ALTER TABLE "NumIngredientOnRecipe" ADD CONSTRAINT "NumIngredientOnRecipe_ingredientId_fkey" FOREIGN KEY ("ingredientId") REFERENCES "Ingredient"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "NumIngredientOnRecipe" ADD CONSTRAINT "NumIngredientOnRecipe_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "Recipe"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "NumIngredientOnRecipe" ADD CONSTRAINT "NumIngredientOnRecipe_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "Recipe"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

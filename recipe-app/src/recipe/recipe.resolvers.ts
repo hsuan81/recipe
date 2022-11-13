@@ -34,7 +34,7 @@ export class RecipeResolvers {
   }
 
   @Mutation(returns => Recipe)
-  // @UseGuards(GqlAuthGuard)
+  @UseGuards(GqlAuthGuard)
   async createRecipe(@Args('content') content: RecipeInput): Promise<Recipe> {
     return this.recipeService.create(content)
   }

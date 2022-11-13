@@ -77,10 +77,22 @@ npm run start:dev
 
 # Prisma
 
+Create first migration
+
+```
+npx prisma migrate dev --name init
+```
+
 After every change to the Prisma models and you'd like to make official change to db, you need to update the Prisma Client locally
 
 ```
 npx prisma migrate
+```
+
+To seed data into database, use the custom-defined command
+
+```
+npm run seed
 ```
 
 If you'd like to prototype the schema, then use the command below locally

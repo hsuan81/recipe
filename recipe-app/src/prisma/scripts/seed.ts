@@ -4,14 +4,18 @@ import { PrismaService } from '../prisma.service'
 const prisma = new PrismaService({ errorFormat: 'pretty' })
 
 async function main() {
-  console.log('Truncating databse...')
+  console.log('Truncating database...')
+  // try {
   await prisma.$queryRaw`TRUNCATE "User", "Recipe", "Basket", "Ingredient", "NumIngredientOnRecipe", "Favorite" CASCADE;`
-
+  // } catch (err) {
+  // console.error('error when truncating database', err)
+  // } finally {
   await testHelper.createUsers(prisma)
   await testHelper.createIngredients(prisma)
   await testHelper.createRecipes(prisma)
   await testHelper.createNumIngrediens(prisma)
   await testHelper.createBaskets(prisma)
+  // }
 }
 
 main()
