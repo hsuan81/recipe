@@ -33,6 +33,14 @@ export class RecipeResolvers {
     return this.recipeService.getLatest()
   }
 
+  @Query(returns => [Recipe])
+  async getRecipesByTags(
+    @Args('tags', { type: () => [String] }) tags: string[],
+    @Args('afterId', { nullable: true }) afterId?: string,
+  ) {
+    return this.recipeService.getByTags(tags, afterId)
+  }
+
   @Mutation(returns => Recipe)
   @UseGuards(GqlAuthGuard)
   async createRecipe(@Args('content') content: RecipeInput): Promise<Recipe> {

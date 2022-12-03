@@ -22,6 +22,9 @@ export class RecipeInput {
 
   @Field(type => Int)
   serving: number
+
+  @Field(type => [String])
+  tags: string[]
 }
 
 @InputType()

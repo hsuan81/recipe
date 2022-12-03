@@ -67,41 +67,7 @@ export class RecipeService {
           unit: i.unit,
           value: i.value,
         })
-
-      // await this.prisma.ingredient.upsert({
-      //   where: { name: i.name },
-      //   create: {
-      //     name: i.name,
-      //     onRecipes: {
-      //       create: {
-      //         recipe: {
-      //           connect: { id: createdRecipe.id },
-      //         },
-      //         unit: i.unit,
-      //         value: i.value,
-      //       },
-      //     },
-      //   },
-      //   update: {
-      //     onRecipes: {
-      //       create: {
-      //         recipe: {
-      //           connect: { id: createdRecipe.id },
-      //         },
-      //         unit: i.unit,
-      //         value: i.value,
-      //       },
-      //     },
-      //   },
-      // })
     }
-
-    // const parsedIngredients = content.ingredientsNum.map(e => ({
-    //   ingredientId:
-    //   ingredient
-    //   unit
-    //   value
-    // }))
 
     const createdRecipe = await this.prisma.recipe.create({
       data: {
@@ -123,16 +89,6 @@ export class RecipeService {
         },
       },
     })
-    // const ingredientOnRecipe = await this.prisma.recipe.findUniqueOrThrow({
-    //   where: { id: createdRecipe.id },
-    //   include: {
-    //     ingredientsNum: {
-    //       include: {
-    //         ingredient: true,
-    //       },
-    //     },
-    //   },
-    // })
     return this._parse(createdRecipe)
   }
 
@@ -153,7 +109,32 @@ export class RecipeService {
     return this._parse(recipe)
   }
 
-  async getLatest(): Promise<Recipe[]> {
+  async getByTags(tags: string[], afterId?: string): Promise<Recipe[]> {
+    const recipesfromDB = await this.prisma.recipe.findMany({
+      where: {
+        tags: {
+          hasEvery: tags,
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        ingredientsNum: {
+          include: {
+            ingredient: true,
+          },
+        },
+      },
+      cursor: afterId ? { id: afterId } : undefined,
+      take: 20,
+      skip: afterId ? 1 : 0,
+    })
+    const recipes = recipesfromDB.map(e => {
+      return this._parse(e)
+    })
+    return recipes
+  }
+
+  async getLatest(afterId?: string): Promise<Recipe[]> {
     const recipesfromDB = await this.prisma.recipe.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
@@ -163,7 +144,9 @@ export class RecipeService {
           },
         },
       },
+      cursor: afterId ? { id: afterId } : undefined,
       take: 20,
+      skip: afterId ? 1 : 0,
     })
 
     const recipes = recipesfromDB.map(e => {
@@ -229,6 +212,7 @@ export class RecipeService {
         difficulty: content.difficulty,
         instructions: content.instructions,
         serving: content.serving,
+        tags: content.tags,
       },
       include: {
         ingredientsNum: {
@@ -271,6 +255,7 @@ export class RecipeService {
       })),
       instructions: recipeFromPrisma.instructions,
       serving: recipeFromPrisma.serving ?? 0,
+      tags: recipeFromPrisma.tags,
       createdAt: recipeFromPrisma.createdAt
         ? recipeFromPrisma.createdAt
         : recipeFromPrisma.createdAt,

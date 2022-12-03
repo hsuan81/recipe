@@ -11,6 +11,7 @@ export const mockRecipes: Recipe[] = [
     updatedAt: new Date(),
     likesNum: 0,
     serving: 0,
+    tags: ['aa', 'bb'],
     viewrs: 0,
   },
   {
@@ -23,6 +24,7 @@ export const mockRecipes: Recipe[] = [
     updatedAt: new Date(),
     likesNum: 0,
     serving: 0,
+    tags: ['aa'],
     viewrs: 0,
   },
 ]

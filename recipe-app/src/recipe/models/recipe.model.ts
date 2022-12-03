@@ -28,6 +28,9 @@ export class Recipe {
   @Field(type => Int)
   serving: number
 
+  @Field(type => [String])
+  tags: string[]
+
   @Field()
   createdAt: Date
 

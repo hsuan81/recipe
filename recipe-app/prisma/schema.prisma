@@ -43,6 +43,7 @@ model Recipe {
   // itemList Item[]
   likesNum       Int                     @default(0)
   serving        Int                     @default(0)
+  tags           String[]
   viewrs         Int                     @default(0)
   author         User                    @relation(fields: [authorId], references: [id])
 

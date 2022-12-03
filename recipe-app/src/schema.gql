@@ -11,6 +11,7 @@ type Recipe {
   ingredientsNum: [IngredientNum!]!
   instructions: [String!]!
   serving: Int!
+  tags: [String!]!
   createdAt: DateTime!
   updatedAt: DateTime
 }
@@ -70,6 +71,7 @@ type Basket {
 type Query {
   getRecipeById(id: ID!): Recipe!
   getLatestRecipes: [Recipe!]!
+  getRecipesByTags(tags: [String!]!, afterId: String): [Recipe!]!
   getUserById(id: ID!): User!
   getUserByEmail(email: String!): User!
   me: User!
@@ -96,6 +98,7 @@ input RecipeInput {
   ingredientsNum: [IngredientNumInput!]!
   instructions: [String!]!
   serving: Int!
+  tags: [String!]!
 }
 
 input IngredientNumInput {
