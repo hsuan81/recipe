@@ -48,6 +48,24 @@ export class RecipeResolvers {
   }
 
   @Mutation(returns => Recipe)
+  @UseGuards(GqlAuthGuard)
+  async likeRecipe(
+    @Args('userId') userId: string,
+    @Args('recipeId') recipeId: string,
+  ): Promise<Recipe> {
+    return this.recipeService.favorite(userId, recipeId)
+  }
+
+  @Mutation(returns => Recipe)
+  @UseGuards(GqlAuthGuard)
+  async unLikeRecipe(
+    @Args('userId') userId: string,
+    @Args('recipeId') recipeId: string,
+  ): Promise<Recipe> {
+    return this.recipeService.unFavorite(userId, recipeId)
+  }
+
+  @Mutation(returns => Recipe)
   // @UseGuards(GqlAuthGuard)
   async updateRecipe(
     @Args('id', { type: () => ID }) id: string,

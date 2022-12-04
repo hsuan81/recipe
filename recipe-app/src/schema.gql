@@ -80,6 +80,8 @@ type Query {
 
 type Mutation {
   createRecipe(content: RecipeInput!): Recipe!
+  likeRecipe(userId: String!, recipeId: String!): Recipe!
+  unLikeRecipe(userId: String!, recipeId: String!): Recipe!
   updateRecipe(id: ID!, content: RecipeInput!): Recipe!
   deleteRecipe(id: ID!): Recipe!
   createUser(input: UserInput!): User!

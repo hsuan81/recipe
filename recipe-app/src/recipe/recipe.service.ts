@@ -109,6 +109,105 @@ export class RecipeService {
     return this._parse(recipe)
   }
 
+  async favorite(userId: string, recipeId: string): Promise<Recipe> {
+    let recipe = await this.prisma.recipe.findUniqueOrThrow({
+      where: { id: recipeId },
+      include: {
+        ingredientsNum: {
+          include: {
+            ingredient: true,
+          },
+        },
+      },
+    })
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      include: { favorite: { include: { recipes: true } } },
+    })
+
+    // create favorite if the user doesn't have one
+    if (!user.favorite) {
+      await this.prisma.favorite.create({
+        data: {
+          user: { connect: { id: userId } },
+        },
+      })
+    }
+
+    const isNewFavorite =
+      user.favorite &&
+      user.favorite.recipes.findIndex(_recipe => _recipe.id === recipe.id) < 0
+
+    if (isNewFavorite) {
+      await this.prisma.favorite.update({
+        where: { id: user.favorite?.id },
+        data: {
+          recipes: { connect: { id: recipeId } },
+        },
+      })
+      recipe.likesNum++
+
+      const updatedRecipe = await this.prisma.recipe.update({
+        where: { id: recipeId },
+        data: {
+          likesNum: recipe.likesNum,
+        },
+        include: {
+          ingredientsNum: {
+            include: {
+              ingredient: true,
+            },
+          },
+        },
+      })
+      return this._parse(updatedRecipe)
+    }
+
+    return this._parse(recipe)
+  }
+
+  async unFavorite(userId: string, recipeId: string): Promise<Recipe> {
+    let recipe = await this.prisma.recipe.findUniqueOrThrow({
+      where: { id: recipeId },
+      include: {
+        ingredientsNum: {
+          include: {
+            ingredient: true,
+          },
+        },
+      },
+    })
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      include: { favorite: { include: { recipes: true } } },
+    })
+    const deleteIndex = user.favorite?.recipes.findIndex(
+      _recipe => _recipe.id === recipe.id,
+    )
+
+    if (deleteIndex && deleteIndex >= 0) {
+      user.favorite?.recipes.splice(deleteIndex, 1)
+      recipe.likesNum--
+
+      const updatedRecipe = await this.prisma.recipe.update({
+        where: { id: recipeId },
+        data: {
+          likesNum: recipe.likesNum,
+        },
+        include: {
+          ingredientsNum: {
+            include: {
+              ingredient: true,
+            },
+          },
+        },
+      })
+      return this._parse(updatedRecipe)
+    }
+
+    return this._parse(recipe)
+  }
+
   async getByTags(tags: string[], afterId?: string): Promise<Recipe[]> {
     const recipesfromDB = await this.prisma.recipe.findMany({
       where: {
