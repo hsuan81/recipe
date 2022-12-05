@@ -18,7 +18,8 @@ export const mockUsers: User[] = [
     name: 'testuser0',
     password:
       '$argon2i$v=19$m=16,t=2,p=1$aXpoMk5yQjRGSVBoS1JSSA$hiDFC+CRQdjn3GJtgQ6c7w', // password:1234
-    hashedRt: '',
+    hashedRt:
+      '83715c4856576297df9f7984f373c08f9bf2933d7bd76963ca1801e244c6b246',
   },
   {
     id: 'testuser1',

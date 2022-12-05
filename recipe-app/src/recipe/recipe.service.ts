@@ -145,11 +145,14 @@ export class RecipeService {
           recipes: { connect: { id: recipeId } },
         },
       })
-      recipe.likesNum++
+      // const newLikesNum = ++recipe.likesNum
+      ++recipe.likesNum
+      console.log(recipe.likesNum)
 
       const updatedRecipe = await this.prisma.recipe.update({
         where: { id: recipeId },
         data: {
+          // likesNum: newLikesNum,
           likesNum: recipe.likesNum,
         },
         include: {
@@ -181,13 +184,23 @@ export class RecipeService {
       where: { id: userId },
       include: { favorite: { include: { recipes: true } } },
     })
-    const deleteIndex = user.favorite?.recipes.findIndex(
-      _recipe => _recipe.id === recipe.id,
-    )
 
-    if (deleteIndex && deleteIndex >= 0) {
-      user.favorite?.recipes.splice(deleteIndex, 1)
+    const deleteIndex =
+      user.favorite &&
+      user.favorite?.recipes.findIndex(_recipe => _recipe.id === recipe.id)
+
+    if (typeof deleteIndex === 'number' && deleteIndex >= 0) {
+      // user.favorite?.recipes.splice(deleteIndex, 1)
+      await this.prisma.favorite.update({
+        where: { id: user.favorite?.id },
+        data: {
+          recipes: { disconnect: { id: recipeId } },
+        },
+      })
       recipe.likesNum--
+      // let newLikesNum = recipe.likesNum
+
+      // console.log(recipe.likesNum)
 
       const updatedRecipe = await this.prisma.recipe.update({
         where: { id: recipeId },
@@ -338,7 +351,7 @@ export class RecipeService {
     return this._parse(deletedRecipe)
   }
 
-  _parse(recipeFromPrisma: RecipeDetailsPrisma): Recipe {
+  _parseRecipe(recipeFromPrisma: RecipeDetailsPrisma): Recipe {
     return {
       id: recipeFromPrisma.id,
       title: recipeFromPrisma.title,
@@ -353,6 +366,7 @@ export class RecipeService {
         value: e.value,
       })),
       instructions: recipeFromPrisma.instructions,
+      likesNum: recipeFromPrisma.likesNum,
       serving: recipeFromPrisma.serving ?? 0,
       tags: recipeFromPrisma.tags,
       createdAt: recipeFromPrisma.createdAt

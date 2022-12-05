@@ -4,13 +4,13 @@ import { Difficulty } from '../enum/difficulty.enum'
 
 // export type Difficulty = 'ACTIVE' | 'ARCHIVE' | 'DELETE' | 'DRAFT' | 'LOCK' | 'REPORTED';
 
-@ObjectType({ description: 'recipe ' })
-export class Recipe {
+@ObjectType({ description: 'summary of a recipe' })
+export class RecipeSummary {
   @Field(type => ID)
   id: string
 
-  @Field(type => ID)
-  authorId: string
+  @Field()
+  authorName: string
 
   @Field()
   title: string
@@ -19,47 +19,22 @@ export class Recipe {
   difficulty: Difficulty[keyof Difficulty]
   // difficulty?: 'DIFFICULT5' | 'DIFFICULT4' | 'MODERATE3' | 'EASY2' | 'EASY1'
 
-  @Field(type => [IngredientNum])
-  ingredientsNum: IngredientNum[]
-
-  @Field(type => [String])
-  instructions: string[]
-
   @Field(type => Int)
   likesNum: number
 
   @Field(type => Int)
   basketsNum: number
 
-  @Field(type => Int)
-  serving: number
-
-  @Field(type => [String])
-  tags: string[]
-
   @Field()
   createdAt: Date
 
   @Field({ nullable: true })
   updatedAt?: Date
-}
 
-@ObjectType({
-  description: 'The combination of ingredient and its number for the recipe',
-})
-export class IngredientNum {
-  @Field(type => ID)
-  ingredientId: string
+  @Field(type => Boolean)
+  likedByCurrentUser: boolean
 
-  @Field(type => ID)
-  recipeId: string
-
-  @Field()
-  name: string
-
-  @Field()
-  unit: string
-
-  @Field()
-  value: string
+  @Field(type => Boolean)
+  basketedByCurrentUser: boolean
+  // cover image
 }
