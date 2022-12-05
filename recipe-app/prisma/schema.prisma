@@ -35,8 +35,9 @@ model Recipe {
   title          String
   createdAt      DateTime                @default(now())
   updatedAt      DateTime?               @updatedAt
-  difficulty     Difficulty              @default(NOSCALE)
+  difficulty     Difficulty              @default(EASY1)
   baskets        Basket[]
+  basketsNum     Int                     @default(0)
   favorite       Favorite[]
   ingredientsNum NumIngredientOnRecipe[]
   instructions   String[]
@@ -44,7 +45,7 @@ model Recipe {
   likesNum       Int                     @default(0)
   serving        Int                     @default(0)
   tags           String[]
-  viewrs         Int                     @default(0)
+  // viewrs         Int                     @default(0)
   author         User                    @relation(fields: [authorId], references: [id])
 
   @@unique([authorId, title])
@@ -90,5 +91,4 @@ enum Difficulty {
   MODERATE3
   EASY2
   EASY1
-  NOSCALE
 }

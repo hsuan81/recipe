@@ -5,12 +5,13 @@
 """recipe """
 type Recipe {
   id: ID!
-  authorId: ID!
+  authorName: String!
   title: String!
   difficulty: Difficulty
   ingredientsNum: [IngredientNum!]!
   instructions: [String!]!
   likesNum: Int!
+  basketsNum: Int!
   serving: Int!
   tags: [String!]!
   createdAt: DateTime!
@@ -24,7 +25,6 @@ enum Difficulty {
   MODERATE3
   EASY2
   EASY1
-  NOSCALE
 }
 
 """
@@ -50,7 +50,7 @@ type Favorite {
 type User {
   id: ID!
   email: String!
-  name: String
+  name: String!
   hashedRt: String
   favorite: Favorite
 }
@@ -103,7 +103,7 @@ type Mutation {
 
 input RecipeInput {
   title: String!
-  authorId: ID!
+  authorName: String!
   difficulty: Difficulty!
   ingredientsNum: [IngredientNumInput!]!
   instructions: [String!]!

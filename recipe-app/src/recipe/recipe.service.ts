@@ -69,12 +69,16 @@ export class RecipeService {
         })
     }
 
+    const author = await this.prisma.user.findUniqueOrThrow({
+      where: { name: content.authorName },
+    })
+
     const createdRecipe = await this.prisma.recipe.create({
       data: {
         ...content,
-        // author: {
-        //   connect: { email: '' },
-        // },
+        author: {
+          connect: { id: author.id },
+        },
         ingredientsNum: {
           createMany: {
             data: ingredientsOnRecipe,
@@ -89,7 +93,7 @@ export class RecipeService {
         },
       },
     })
-    return this._parse(createdRecipe)
+    return this._parseRecipe(createdRecipe, authorName)
   }
 
   async findById(id: string): Promise<Recipe> {
@@ -334,10 +338,13 @@ export class RecipeService {
         },
       },
     })
-    return this._parse(updatedRecipe)
+    return this._parseRecipe(updatedRecipe, content.authorName)
   }
 
-  async delete(id: string): Promise<Recipe> {
+  async delete(id: string, authorId: string): Promise<Recipe> {
+    const { name } = await this.prisma.user.findUniqueOrThrow({
+      where: { id: authorId },
+    })
     const deletedRecipe = await this.prisma.recipe.delete({
       where: { id },
       include: {
@@ -348,15 +355,18 @@ export class RecipeService {
         },
       },
     })
-    return this._parse(deletedRecipe)
+    return this._parseRecipe(deletedRecipe, name)
   }
 
-  _parseRecipe(recipeFromPrisma: RecipeDetailsPrisma): Recipe {
+  _parseRecipe(
+    recipeFromPrisma: RecipeDetailsPrisma,
+    authorName: string,
+  ): Recipe {
     return {
       id: recipeFromPrisma.id,
       title: recipeFromPrisma.title,
-      authorId: recipeFromPrisma.authorId,
-      difficulty: recipeFromPrisma.difficulty ?? undefined,
+      authorName,
+      difficulty: recipeFromPrisma.difficulty,
       // difficulty: recipeFromPrisma.difficulty != null ? recipeFromPrisma.difficulty : undefined,
       ingredientsNum: recipeFromPrisma.ingredientsNum.map(e => ({
         ingredientId: e.ingredientId,
@@ -366,6 +376,7 @@ export class RecipeService {
         value: e.value,
       })),
       instructions: recipeFromPrisma.instructions,
+      basketsNum: recipeFromPrisma.basketsNum,
       likesNum: recipeFromPrisma.likesNum,
       serving: recipeFromPrisma.serving ?? 0,
       tags: recipeFromPrisma.tags,

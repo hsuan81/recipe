@@ -6,7 +6,6 @@ export enum Difficulty {
   MODERATE3 = 'MODERATE3',
   EASY2 = 'EASY2',
   EASY1 = 'EASY1',
-  NOSCALE = 'NOSCALE',
 }
 
 registerEnumType(Difficulty, {

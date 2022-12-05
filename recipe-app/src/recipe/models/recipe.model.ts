@@ -9,8 +9,8 @@ export class Recipe {
   @Field(type => ID)
   id: string
 
-  @Field(type => ID)
-  authorId: string
+  @Field()
+  authorName: string
 
   @Field()
   title: string

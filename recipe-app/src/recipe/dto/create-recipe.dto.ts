@@ -8,8 +8,8 @@ export class RecipeInput {
   @Field()
   title: string
 
-  @Field(type => ID)
-  authorId: string
+  @Field()
+  authorName: string
 
   @Field(type => Difficulty, { nullable: false })
   difficulty?: Difficulty
