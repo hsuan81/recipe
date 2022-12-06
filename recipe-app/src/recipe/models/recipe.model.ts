@@ -9,6 +9,9 @@ export class Recipe {
   @Field(type => ID)
   id: string
 
+  @Field(type => ID)
+  authorId: string
+
   @Field()
   authorName: string
 
@@ -27,6 +30,12 @@ export class Recipe {
 
   @Field(type => Int)
   likesNum: number
+
+  @Field(type => Boolean)
+  likedByCurrentUser: boolean
+
+  @Field(type => Boolean)
+  basketedByCurrentUser: boolean
 
   @Field(type => Int)
   basketsNum: number

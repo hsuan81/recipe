@@ -9,6 +9,9 @@ export class RecipeSummary {
   @Field(type => ID)
   id: string
 
+  @Field(type => ID)
+  authorId: string
+
   @Field()
   authorName: string
 
@@ -20,10 +23,10 @@ export class RecipeSummary {
   // difficulty?: 'DIFFICULT5' | 'DIFFICULT4' | 'MODERATE3' | 'EASY2' | 'EASY1'
 
   @Field(type => Int)
-  likesNum: number
+  basketsNum: number
 
   @Field(type => Int)
-  basketsNum: number
+  likesNum: number
 
   @Field()
   createdAt: Date
