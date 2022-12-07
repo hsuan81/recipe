@@ -16,6 +16,7 @@ import { CurrentUser } from 'src/auth/auth.decorator'
 import { UseGuards } from '@nestjs/common'
 import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard'
 import { User } from 'src/users/models/user.model'
+import { RecipeSummary } from './models/recipeSummary.model'
 
 // const pubSub = new PubSub();
 
@@ -23,23 +24,23 @@ import { User } from 'src/users/models/user.model'
 export class RecipeResolvers {
   constructor(private readonly recipeService: RecipeService) {}
 
-  @Query(returns => Recipe)
+  @Query(returns => RecipeSummary)
   async getRecipeById(
     @Args('id', { type: () => ID }) id: string,
-  ): Promise<Recipe> {
+  ): Promise<RecipeSummary> {
     return this.recipeService.findById(id)
   }
 
-  @Query(returns => [Recipe])
-  async getLatestRecipes(): Promise<Recipe[]> {
+  @Query(returns => [RecipeSummary])
+  async getLatestRecipes(): Promise<RecipeSummary[]> {
     return this.recipeService.getLatest()
   }
 
-  @Query(returns => [Recipe])
+  @Query(returns => [RecipeSummary])
   async getRecipesByTags(
     @Args('tags', { type: () => [String] }) tags: string[],
     @Args('afterId', { nullable: true }) afterId?: string,
-  ) {
+  ): Promise<RecipeSummary[]> {
     return this.recipeService.getByTags(tags, afterId)
   }
 
@@ -84,7 +85,8 @@ export class RecipeResolvers {
   // @UseGuards(GqlAuthGuard)
   async deleteRecipe(
     @Args('id', { type: () => ID }) id: string,
+    @CurrentUser() currentUser: User,
   ): Promise<Recipe> {
-    return this.recipeService.delete(id)
+    return this.recipeService.delete(id, currentUser.id)
   }
 }

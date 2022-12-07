@@ -5,12 +5,15 @@
 """recipe """
 type Recipe {
   id: ID!
+  authorId: ID!
   authorName: String!
   title: String!
   difficulty: Difficulty
   ingredientsNum: [IngredientNum!]!
   instructions: [String!]!
   likesNum: Int!
+  likedByCurrentUser: Boolean!
+  basketedByCurrentUser: Boolean!
   basketsNum: Int!
   serving: Int!
   tags: [String!]!
@@ -55,6 +58,21 @@ type User {
   favorite: Favorite
 }
 
+"""summary of a recipe"""
+type RecipeSummary {
+  id: ID!
+  authorId: ID!
+  authorName: String!
+  title: String!
+  difficulty: Difficulty
+  basketsNum: Int!
+  likesNum: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  likedByCurrentUser: Boolean!
+  basketedByCurrentUser: Boolean!
+}
+
 """contain access token and refresh token"""
 type Tokens {
   access_token: String!
@@ -77,9 +95,9 @@ type Basket {
 }
 
 type Query {
-  getRecipeById(id: ID!): Recipe!
-  getLatestRecipes: [Recipe!]!
-  getRecipesByTags(tags: [String!]!, afterId: String): [Recipe!]!
+  getRecipeById(id: ID!): RecipeSummary!
+  getLatestRecipes: [RecipeSummary!]!
+  getRecipesByTags(tags: [String!]!, afterId: String): [RecipeSummary!]!
   getUserById(id: ID!): User!
   getUserByEmail(email: String!): User!
   me: User!
