@@ -10,6 +10,8 @@ import { UsersModule } from './users/users.module'
 import { AuthModule } from './auth/auth.module'
 import { ConfigModule } from '@nestjs/config'
 import { BasketsModule } from './baskets/baskets.module'
+import { S3Service } from './src/s3/s3.service';
+import { S3Service } from './s3/s3.service';
 
 @Module({
   imports: [
@@ -35,6 +37,6 @@ import { BasketsModule } from './baskets/baskets.module'
     ConfigModule.forRoot(),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, S3Service],
 })
 export class AppModule {}

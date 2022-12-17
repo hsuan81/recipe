@@ -17,8 +17,8 @@ export class RecipeInput {
   @Field(type => [IngredientNumInput])
   ingredientsNum: IngredientNumInput[]
 
-  @Field(type => [String])
-  instructions: string[]
+  @Field(type => [RecipeStepInput])
+  instructions: RecipeStepInput[]
 
   @Field(type => Int)
   serving: number
@@ -43,4 +43,16 @@ export class IngredientNumInput {
 
   @Field()
   value: string
+}
+
+@InputType()
+export class RecipeStepInput {
+  @Field()
+  instruction: string
+
+  @Field()
+  imageName: string
+
+  @Field()
+  url: string
 }

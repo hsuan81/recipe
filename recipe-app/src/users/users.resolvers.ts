@@ -5,21 +5,25 @@ import {
   Query,
   Mutation,
   Args,
+  Parent,
   Subscription,
   Context,
   ID,
+  ResolveField,
 } from '@nestjs/graphql'
 import { CurrentUser } from 'src/auth/auth.decorator'
 import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard'
 import { User } from './models/user.model'
 import { UserInput } from './dto/user-input.dto'
 import { UsersService } from './users.service'
+// import { Basket } from 'src/baskets/model/basket.model'
+// import { BasketsService } from 'src/baskets/baskets.service'
 
-// const pubSub = new PubSub();
-
-@Resolver('Users')
+@Resolver(() => User)
 export class UsersResolvers {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService, // private basketsService: BasketsService,
+  ) {}
 
   @Query(returns => User)
   async getUserById(
@@ -43,6 +47,12 @@ export class UsersResolvers {
   async createUser(@Args('input') input: UserInput): Promise<User> {
     return this.usersService.create(input)
   }
+
+  // @ResolveField('basket', () => Basket)
+  // async getBasket(@Parent() user: User) {
+  //   const { id } = user
+  //   return this.basketsService.find(id)
+  // }
 
   // @Mutation('updateRecipe')
   // async updateRecipe(@Args('id') id: string, @Args('id') content: RecipeInputDto,): Promise<Recipe> {

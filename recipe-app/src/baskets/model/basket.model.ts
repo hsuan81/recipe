@@ -1,5 +1,6 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql'
-import { IngredientNum } from 'src/recipe/models/recipe.model'
+import { IngredientNum, Recipe } from 'src/recipe/models/recipe.model'
+import { RecipeSummary } from 'src/recipe/models/recipeSummary.model'
 // import { IngredientNum } from 'src/graphql.schema';
 
 // export type Difficulty = 'ACTIVE' | 'ARCHIVE' | 'DELETE' | 'DRAFT' | 'LOCK' | 'REPORTED';
@@ -17,6 +18,9 @@ export class Basket {
 
   @Field(type => [IngredientNum], { nullable: 'items' })
   ingredientsNum: IngredientNum[]
+
+  // @Field(type => [RecipeSummary])
+  // recipes: RecipeSummary[]
 }
 
 // @ObjectType({

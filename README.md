@@ -108,3 +108,11 @@ Generate Graphql Typescript on demand (schema first approach)
 ```
 npx ts-node ./src/generate-typings
 ```
+
+# AWS S#
+
+Install AWS S3 package and dependency
+
+```
+npm install @aws-sdk/client-s3
+```

@@ -8,6 +8,7 @@ import {
 } from '@prisma/client'
 import { Basket } from './model/basket.model'
 import { IngredientNum } from 'src/recipe/models/recipe.model'
+import { RecipeDetailsPrisma, RecipeService } from 'src/recipe/recipe.service'
 
 export type PrismaBasketWithIngredients = PrismaBasket & {
   recipes: (PrismaRecipe & {
@@ -17,12 +18,30 @@ export type PrismaBasketWithIngredients = PrismaBasket & {
   })[]
 }
 
+// export type PrismaBasketWithIngredients = PrismaBasket & {
+//   recipes: RecipeDetailsPrisma[]
+// }
+
 @Injectable()
 export class BasketsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService, // private recipeService: RecipeService,
+  ) {}
 
+  /**
+   * Add recipe to user's basket if any or create a basket first and add the recipe.
+   * And increment the number of baskets containing this recipe on the Recipe object.
+   * Return updated basket.
+   *
+   * @param userId - the user's id
+   * @param recipeId - the recipe id
+   * @returns The updated basket.
+   */
   async add(userId: string, recipeId: string): Promise<Basket> {
     const basket = await this.prisma.basket.findUnique({ where: { userId } })
+    const recipe = await this.prisma.recipe.findUniqueOrThrow({
+      where: { id: recipeId },
+    })
     if (!basket) {
       const createdBasket = await this.prisma.basket.create({
         data: {
@@ -34,12 +53,21 @@ export class BasketsService {
         include: {
           recipes: {
             include: {
+              // author: {
+              //   select: {
+              //     name: true,
+              //   },
+              // },
               ingredientsNum: {
                 include: { ingredient: true },
               },
             },
           },
         },
+      })
+      await this.prisma.recipe.update({
+        where: { id: recipeId },
+        data: { basketsNum: ++recipe.basketsNum },
       })
       return this._parse(createdBasket)
     } else {
@@ -49,12 +77,21 @@ export class BasketsService {
         include: {
           recipes: {
             include: {
+              // author: {
+              //   select: {
+              //     name: true,
+              //   },
+              // },
               ingredientsNum: {
                 include: { ingredient: true },
               },
             },
           },
         },
+      })
+      await this.prisma.recipe.update({
+        where: { id: recipeId },
+        data: { basketsNum: ++recipe.basketsNum },
       })
       return this._parse(updatedBasket)
     }
@@ -71,12 +108,24 @@ export class BasketsService {
       include: {
         recipes: {
           include: {
+            // author: {
+            //   select: {
+            //     name: true,
+            //   },
+            // },
             ingredientsNum: {
               include: { ingredient: true },
             },
           },
         },
       },
+    })
+    const recipe = await this.prisma.recipe.findUniqueOrThrow({
+      where: { id: recipeId },
+    })
+    await this.prisma.recipe.update({
+      where: { id: recipeId },
+      data: { basketsNum: --recipe.basketsNum },
     })
     return this._parse(removedBasket)
   }
@@ -87,6 +136,11 @@ export class BasketsService {
       include: {
         recipes: {
           include: {
+            // author: {
+            //   select: {
+            //     name: true,
+            //   },
+            // },
             ingredientsNum: {
               include: { ingredient: true },
             },
@@ -102,6 +156,11 @@ export class BasketsService {
         include: {
           recipes: {
             include: {
+              // author: {
+              //   select: {
+              //     name: true,
+              //   },
+              // },
               ingredientsNum: {
                 include: { ingredient: true },
               },
@@ -118,6 +177,9 @@ export class BasketsService {
     return {
       id: prismaBasket.id,
       userId: prismaBasket.userId,
+      // recipes: prismaBasket.recipes.map(e =>
+      //   this.recipeService._parseSummary(e),
+      // ),
       ingredientsNum: this._extractIngredients(prismaBasket.recipes),
     }
   }

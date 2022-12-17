@@ -16,6 +16,9 @@ export class RecipeSummary {
   authorName: string
 
   @Field()
+  coverImageUrl: string
+
+  @Field()
   title: string
 
   @Field(type => Difficulty, { nullable: true })

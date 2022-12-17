@@ -25,8 +25,8 @@ export class Recipe {
   @Field(type => [IngredientNum])
   ingredientsNum: IngredientNum[]
 
-  @Field(type => [String])
-  instructions: string[]
+  @Field(type => [RecipeStep])
+  instructions: RecipeStep[]
 
   @Field(type => Int)
   likesNum: number
@@ -71,4 +71,16 @@ export class IngredientNum {
 
   @Field()
   value: string
+}
+
+@ObjectType({ description: 'The instruction of one step and its image.' })
+export class RecipeStep {
+  @Field()
+  instruction: string
+
+  @Field()
+  imageName: string
+
+  @Field()
+  url: string
 }

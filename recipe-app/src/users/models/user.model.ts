@@ -1,4 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql'
+import { Basket } from 'src/baskets/model/basket.model'
 import { Recipe } from 'src/recipe/models/recipe.model'
 
 @ObjectType({
@@ -25,6 +26,9 @@ export class User {
 
   @Field({ nullable: true })
   hashedRt?: string
+
+  // @Field(type => Basket, { nullable: true })
+  // basket?: Basket
 
   @Field(type => Favorite, { nullable: true })
   favorite?: Favorite
