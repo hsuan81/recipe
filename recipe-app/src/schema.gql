@@ -10,7 +10,7 @@ type Recipe {
   title: String!
   difficulty: Difficulty
   ingredientsNum: [IngredientNum!]!
-  instructions: [String!]!
+  instructions: [RecipeStep!]!
   likesNum: Int!
   likedByCurrentUser: Boolean!
   basketedByCurrentUser: Boolean!
@@ -44,6 +44,13 @@ type IngredientNum {
   value: String!
 }
 
+"""The instruction of one step and its image."""
+type RecipeStep {
+  instruction: String!
+  imageName: String!
+  url: String!
+}
+
 """Liked Recipes"""
 type Favorite {
   id: ID!
@@ -63,6 +70,7 @@ type RecipeSummary {
   id: ID!
   authorId: ID!
   authorName: String!
+  coverImageUrl: String!
   title: String!
   difficulty: Difficulty
   basketsNum: Int!
@@ -124,7 +132,7 @@ input RecipeInput {
   authorName: String!
   difficulty: Difficulty!
   ingredientsNum: [IngredientNumInput!]!
-  instructions: [String!]!
+  instructions: [RecipeStepInput!]!
   serving: Int!
   tags: [String!]!
 }
@@ -135,6 +143,12 @@ input IngredientNumInput {
   name: String!
   unit: String!
   value: String!
+}
+
+input RecipeStepInput {
+  instruction: String!
+  imageName: String!
+  url: String!
 }
 
 input UserInput {

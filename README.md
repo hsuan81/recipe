@@ -116,3 +116,11 @@ Install AWS S3 package and dependency
 ```
 npm install @aws-sdk/client-s3
 ```
+
+# Testing
+
+Run the test
+
+```
+npm test <filename>
+```
