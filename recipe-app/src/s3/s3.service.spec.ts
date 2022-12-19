@@ -1,9 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing'
 // import * as fs from 'fs'
 import { S3Service } from './s3.service'
+import { AppConfigService } from 'src/appconfig/appconfig.service'
 
 describe('S3Service', () => {
   let service: S3Service
+  let config: AppConfigService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

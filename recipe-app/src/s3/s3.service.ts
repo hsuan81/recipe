@@ -2,18 +2,22 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { AppConfigService } from 'src/appconfig/appconfig.service'
+import * as dotenv from 'dotenv'
 // import { AppService } from 'src/app.service'
+
+dotenv.config()
 
 @Injectable()
 export class S3Service {
   //   @Inject()
   //   private config: ConfigService
-  AWS_S3_BUCKET = AppConfigService.get('AWS_S3_BUCKET')
+  AWS_S3_BUCKET = process.env.AWS_S3_BUCKET!
+  //   AWS_S3_BUCKET = AppConfigService.get('AWS_S3_BUCKET')
   s3Client = new S3Client({
-    region: AppConfigService.get('AWS_S3_Region'),
+    region: process.env.AWS_S3_Region,
     credentials: {
-      accessKeyId: AppConfigService.get('AWS_S3_ACCESS_KEY'),
-      secretAccessKey: AppConfigService.get('AWS_S3_KEY_SECRET'),
+      accessKeyId: process.env.AWS_S3_ACCESS_KEY!,
+      secretAccessKey: process.env.AWS_S3_KEY_SECRET!,
     },
   })
 

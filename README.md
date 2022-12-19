@@ -124,3 +124,11 @@ Run the test
 ```
 npm test <filename>
 ```
+
+# Dotenv
+
+Install dotenv lib to read .env file and access the environment variable
+
+```
+npm i dotenv
+```
