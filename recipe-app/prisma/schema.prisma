@@ -40,7 +40,7 @@ model Recipe {
   basketsNum     Int                     @default(0)
   favorite       Favorite[]
   ingredientsNum NumIngredientOnRecipe[]
-  instructions   String[]
+  instructions   RecipeStep[]
   // itemList Item[]
   likesNum       Int                     @default(0)
   serving        Int                     @default(0)
@@ -67,6 +67,16 @@ model NumIngredientOnRecipe {
   value        String
 
   @@id([recipeId, ingredientId])
+}
+
+model RecipeStep {
+  id          String @id @default(cuid())
+  recipeId    String
+  stepNum     Int
+  instruction String
+  imageName   String
+  url         String
+  recipe      Recipe @relation(fields: [recipeId], references: [id])
 }
 
 model Favorite {

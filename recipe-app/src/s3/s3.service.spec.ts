@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-// import * as fs from 'fs'
+import { readFile } from 'fs/promises'
 import { S3Service } from './s3.service'
 import { AppConfigService } from 'src/appconfig/appconfig.service'
 
@@ -19,20 +19,33 @@ describe('S3Service', () => {
     expect(service).toBeDefined()
   })
 
-  it('upload image to s3', async () => {
+  it('upload one file to s3', async () => {
     // convert image file to blob
-    let fs = require('fs')
-    let image = fs.readFileSync('src/../test/_mocks_/mock_assets/dog.jpg', {
-      encoding: 'base64',
-    })
+    // let fs = require('fs')
+    // let image = fs.readFileSync('src/../test/_mocks_/mock_assets/dog.jpg', {
+    //   encoding: 'base64',
+    // })
+    let image = await readFile('src/../test/_mocks_/mock_assets/dog.jpg')
+    console.log('test noencoding:', image.buffer)
     // pass the blob and image name into uploadImage method and check the return
-    const result = await service.uploadImage('dog.jpg', image)
-    expect(result).toMatchInlineSnapshot(`
-      Object {
-        "imageName": "dog.jpg",
-        "url": "https://\${this.AWS_S3_BUCKET}.s3.amazonaws.com/\${imageName}",
-      }
-    `)
+    const result = await service.s3_upload('dog.jpg', image)
+    expect(result?.$metadata.httpStatusCode).toMatchInlineSnapshot(`200`)
+    // const result = ['test']
+    // jest.spyOn(service, 's3_upload').mockImplementation()
+    // expect(await S3Service.findAll()).toBe(result)
+  })
+
+  it('delete one file from s3', async () => {
+    // convert image file to blob
+    // let fs = require('fs')
+    // let image = fs.readFileSync('src/../test/_mocks_/mock_assets/dog.jpg', {
+    //   encoding: 'base64',
+    // })
+    // let image = await readFile('src/../test/_mocks_/mock_assets/dog.jpg')
+    // console.log('test noencoding:', image.buffer)
+    // pass the blob and image name into uploadImage method and check the return
+    const result = await service.s3_delete('dog.jpg')
+    expect(result?.$metadata.httpStatusCode).toMatchInlineSnapshot(`204`)
     // const result = ['test']
     // jest.spyOn(service, 's3_upload').mockImplementation()
     // expect(await S3Service.findAll()).toBe(result)

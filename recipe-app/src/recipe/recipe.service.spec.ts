@@ -26,23 +26,25 @@ describe('RecipeService', () => {
     expect(service).toBeDefined()
   })
 
-  it('should create a recipe and retrun it', async () => {
-    expect(
-      await service.create({
-        title: 'test',
-        authorId: 'testuser0',
-        difficulty: undefined,
-        ingredientsNum: [
-          {
-            recipeId: '1',
-            name: 'ingred1',
-            unit: 'g',
-            value: '100',
-          },
-        ],
-        instructions: [''],
-        serving: 1,
-      }),
-    ).toMatchInlineSnapshot()
-  })
+  // it('should create a recipe and retrun it', async () => {
+  //   expect(
+  //     await service.create({
+  //       title: 'test',
+  //       authorId: 'testuser0',
+  //       difficulty: undefined,
+  //       ingredientsNum: [
+  //         {
+  //           recipeId: '1',
+  //           name: 'ingred1',
+  //           unit: 'g',
+  //           value: '100',
+  //         },
+  //       ],
+  //       instructions: [''],
+  //       serving: 1,
+  //     }),
+  //   ).toMatchInlineSnapshot()
+  // })
+
+  it('upload images while creating a new recipe')
 })

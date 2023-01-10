@@ -75,6 +75,9 @@ export class IngredientNum {
 
 @ObjectType({ description: 'The instruction of one step and its image.' })
 export class RecipeStep {
+  @Field(type => Int)
+  stepNum: number
+
   @Field()
   instruction: string
 
@@ -82,5 +85,5 @@ export class RecipeStep {
   imageName: string
 
   @Field()
-  url: string
+  imageUrl: string
 }

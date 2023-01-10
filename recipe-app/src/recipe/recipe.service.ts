@@ -5,12 +5,14 @@ import {
   Recipe as PrismaRecipe,
 } from '@prisma/client'
 import { truncate } from 'fs'
+import { S3Service } from 'src/s3/s3.service'
+import { stream2buffer } from 'src/util/stream2buffer'
 // import { Recipe } from '../graphql.schema';
 import { PrismaService } from '../prisma/prisma.service'
-import { RecipeInput } from './dto/create-recipe.dto'
+import { RecipeInput, RecipeStepInput } from './dto/create-recipe.dto'
 import { Difficulty } from './enum/difficulty.enum'
 // import { RecipeInput, IngredientNumInput } from './dto/create-recipe.dto';
-import { Recipe, IngredientNum } from './models/recipe.model'
+import { Recipe, IngredientNum, RecipeStep } from './models/recipe.model'
 import { RecipeSummary } from './models/recipeSummary.model'
 
 // export type GQLRecipe = {
@@ -41,7 +43,7 @@ export type RecipeDetailsPrisma = PrismaRecipe & {
 
 @Injectable()
 export class RecipeService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private s3Service: S3Service) {}
 
   async create(content: RecipeInput): Promise<Recipe> {
     // create or retrieve ingredients
@@ -88,6 +90,7 @@ export class RecipeService {
             data: ingredientsOnRecipe,
           },
         },
+        instructions:
       },
       include: {
         author: {
@@ -410,6 +413,16 @@ export class RecipeService {
       },
     })
     return this._parseRecipe(deletedRecipe)
+  }
+
+  _uploadImagesToS3(instructions: RecipeStepInput[]){
+    let imagesUrls: RecipeStep[]
+    for (let i of instructions) {
+      const {filename, mimetype, encoding, createReadStream} = await i.image
+      const stream = createReadStream()
+      const buffer = await stream2buffer(stream)
+      this.s3Service.uploadImage(filename, buffer)
+    }
   }
 
   _parseRecipe(
