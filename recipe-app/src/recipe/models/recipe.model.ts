@@ -75,6 +75,12 @@ export class IngredientNum {
 
 @ObjectType({ description: 'The instruction of one step and its image.' })
 export class RecipeStep {
+  @Field(type => ID)
+  id: string
+
+  @Field(type => ID)
+  recipeId: string
+
   @Field(type => Int)
   stepNum: number
 
