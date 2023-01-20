@@ -53,15 +53,15 @@ export class RecipeStepInput {
   @Field(type => Int)
   stepNum: number
 
-  @Field()
-  instruction: string
+  @Field({ nullable: true })
+  instruction?: string
 
-  @Field()
-  imageName: string
+  @Field({ nullable: true })
+  imageName?: string
 
   // @Field()
   // url: string
 
-  @Field(() => GraphQLUpload)
-  image: Promise<FileUpload>
+  @Field(() => GraphQLUpload, { nullable: true })
+  image?: Promise<FileUpload>
 }

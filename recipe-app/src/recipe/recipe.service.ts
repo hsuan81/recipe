@@ -3,9 +3,10 @@ import {
   Ingredient as PrismaIngredient,
   NumIngredientOnRecipe as PrismaNumIngredientOnRecipe,
   Recipe as PrismaRecipe,
+  RecipeStep as PrismaRecipeStep,
 } from '@prisma/client'
 import { truncate } from 'fs'
-import { S3Service } from 'src/s3/s3.service'
+import { imageUrl, S3Service } from 'src/s3/s3.service'
 import { stream2buffer } from 'src/util/stream2buffer'
 // import { Recipe } from '../graphql.schema';
 import { PrismaService } from '../prisma/prisma.service'
@@ -75,10 +76,12 @@ export class RecipeService {
         })
     }
 
+    // Check the user exists
     const author = await this.prisma.user.findUniqueOrThrow({
       where: { name: content.authorName },
     })
 
+    // Create recipe
     const createdRecipe = await this.prisma.recipe.create({
       data: {
         ...content,
@@ -90,7 +93,6 @@ export class RecipeService {
             data: ingredientsOnRecipe,
           },
         },
-        instructions:
       },
       include: {
         author: {
@@ -105,7 +107,14 @@ export class RecipeService {
         },
       },
     })
-    return this._parseRecipe(createdRecipe)
+
+    // Create instructions and upload images to s3
+    const recipeSteps = await this._createInstructions(
+      createdRecipe.id,
+      content.instructions,
+    )
+
+    return this._parseRecipe(createdRecipe, recipeSteps)
   }
 
   async findById(id: string): Promise<RecipeSummary> {
@@ -292,6 +301,37 @@ export class RecipeService {
     return recipes
   }
 
+  async getByDifficulty(
+    difficulty: Difficulty,
+    afterId?: string,
+  ): Promise<RecipeSummary[]> {
+    const recipesfromDB = await this.prisma.recipe.findMany({
+      where: {
+        difficulty: difficulty,
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        author: {
+          select: {
+            name: true,
+          },
+        },
+        ingredientsNum: {
+          include: {
+            ingredient: true,
+          },
+        },
+      },
+      cursor: afterId ? { id: afterId } : undefined,
+      take: 20,
+      skip: afterId ? 1 : 0,
+    })
+    const recipes = recipesfromDB.map(e => {
+      return this._parseSummary(e)
+    })
+    return recipes
+  }
+
   async getLatest(afterId?: string): Promise<RecipeSummary[]> {
     const recipesfromDB = await this.prisma.recipe.findMany({
       orderBy: { createdAt: 'desc' },
@@ -415,18 +455,139 @@ export class RecipeService {
     return this._parseRecipe(deletedRecipe)
   }
 
-  _uploadImagesToS3(instructions: RecipeStepInput[]){
-    let imagesUrls: RecipeStep[]
+  async _createInstructions(
+    recipeId: string,
+    instructions: RecipeStepInput[],
+  ): Promise<PrismaRecipeStep[]> {
+    let recipeSteps: PrismaRecipeStep[] = []
     for (let i of instructions) {
-      const {filename, mimetype, encoding, createReadStream} = await i.image
+      const { filename, mimetype, encoding, createReadStream } = await i.image
       const stream = createReadStream()
       const buffer = await stream2buffer(stream)
-      this.s3Service.uploadImage(filename, buffer)
+      const url = await this.s3Service.uploadImage(filename, buffer)
+      const step = await this.prisma.recipeStep.create({
+        data: {
+          ...i,
+          imageName: url.filename,
+          imageUrl: url.url,
+          recipe: {
+            connect: {
+              id: recipeId,
+            },
+          },
+        },
+      })
+      recipeSteps.push({ ...step })
     }
+    return recipeSteps
+  }
+
+  async _createOneInstruction(
+    recipeId: string,
+    instruction: RecipeStepInput,
+  ): Promise<PrismaRecipeStep> {
+    const { filename, mimetype, encoding, createReadStream } =
+      await instruction.image
+    const stream = createReadStream()
+    const buffer = await stream2buffer(stream)
+    const url = await this.s3Service.uploadImage(filename, buffer)
+    const step = await this.prisma.recipeStep.create({
+      data: {
+        ...instruction,
+        imageName: url.filename,
+        imageUrl: url.url,
+        recipe: {
+          connect: {
+            id: recipeId,
+          },
+        },
+      },
+    })
+    return step
+  }
+  async _deleteOneInstruction(recipeStepId: string) {
+    await this.prisma.recipeStep.delete({
+      where: {
+        id: recipeStepId,
+      },
+    })
+  }
+  async _updateOneInstruction(
+    recipeId: string,
+    step: RecipeStepInput,
+  ): Promise<PrismaRecipeStep> {
+    // Get the instruction stored in the db
+    const storedStep = await this.prisma.recipeStep.findFirstOrThrow({
+      where: { recipeId, stepNum: step.stepNum },
+    })
+    // Preprocess the uploaded image
+    // If image is not empty, upload it to s3
+    let getUrl
+    if (step.imageName !== null && step.image !== null) {
+      const { filename, mimetype, encoding, createReadStream } =
+        await step.image!
+      const stream = createReadStream()
+      const buffer = await stream2buffer(stream)
+      const url = await this.s3Service.uploadImage(filename, buffer)
+      getUrl = function () {
+        return url.url
+      }
+    }
+
+    // Compare the new input instruction with the one stored in the db
+    // If instruction string is different
+    // if (storedStep.instruction !== step.instruction) {
+    // }
+
+    const updatedStep = await this.prisma.recipeStep.update({
+      where: { id: storedStep.id },
+      data: {
+        instruction:
+          storedStep.instruction !== step.instruction
+            ? step.instruction
+            : undefined,
+        imageName: step.imageName != null ? step.imageName : undefined,
+        imageUrl: getUrl?.(),
+      },
+    })
+    return updatedStep
+  }
+
+  async _updateRecipeInstructions(
+    recipeId: string,
+    instructions: RecipeStepInput[],
+  ): Promise<PrismaRecipeStep[]> {
+    const stepsFromPrisma = await this.prisma.recipeStep.findMany({
+      where: {
+        recipeId,
+      },
+      orderBy: {
+        stepNum: 'asc',
+      },
+    })
+
+    instructions.sort((a, b) => a.stepNum - b.stepNum)
+
+    let updatedSteps: PrismaRecipeStep[] = []
+
+    for (let r in instructions) {
+      if (instructions[r].stepNum == stepsFromPrisma[r].stepNum)
+        updatedSteps.push(
+          await this._updateOneInstruction(recipeId, instructions[r]),
+        )
+
+      if (instructions[r].stepNum < stepsFromPrisma[r].stepNum)
+        updatedSteps.push(
+          await this._createOneInstruction(recipeId, instructions[r]),
+        )
+      else await this._deleteOneInstruction(stepsFromPrisma[r].id)
+    }
+    return updatedSteps
   }
 
   _parseRecipe(
     recipeFromPrisma: RecipeDetailsPrisma,
+    recipeStepsFromPrisma: PrismaRecipeStep[],
     userLike: boolean = false,
     userBasket: boolean = false,
   ): Recipe {
@@ -444,7 +605,7 @@ export class RecipeService {
         unit: e.unit,
         value: e.value,
       })),
-      instructions: recipeFromPrisma.instructions,
+      instructions: recipeStepsFromPrisma,
       basketedByCurrentUser: userBasket,
       basketsNum: recipeFromPrisma.basketsNum,
       likedByCurrentUser: userLike,

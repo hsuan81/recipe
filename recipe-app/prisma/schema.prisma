@@ -75,7 +75,7 @@ model RecipeStep {
   stepNum     Int
   instruction String
   imageName   String
-  url         String
+  imageUrl    String
   recipe      Recipe @relation(fields: [recipeId], references: [id])
 }
 

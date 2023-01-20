@@ -14,8 +14,8 @@ import { stream2buffer } from 'src/util/stream2buffer'
 
 dotenv.config()
 
-type imageUrl = {
-  imageName: string
+export type imageUrl = {
+  filename: string
   url: string
 }
 
@@ -36,13 +36,15 @@ export class S3Service {
   async uploadImage(
     imageName: string,
     file: string | Blob | Buffer | Readable | ReadableStream,
-  ) {
+  ): Promise<imageUrl> {
     const response = await this.s3_upload(imageName, file)
     const url = `https://${this.AWS_S3_BUCKET}.s3.amazonaws.com/recipe/${imageName}`
-    return { imageName, url }
+    return { filename: imageName, url }
   }
 
-  async _uploadMultipleImages(images: Promise<FileUpload>[]) {
+  async _uploadMultipleImages(
+    images: Promise<FileUpload>[],
+  ): Promise<imageUrl[]> {
     let urls: imageUrl[] = []
     for (let i of images) {
       const { filename, mimetype, encoding, createReadStream } = await i
@@ -51,6 +53,7 @@ export class S3Service {
       const result = await this.uploadImage(filename, buffer)
       urls.push(result)
     }
+    return urls
   }
 
   async deleteImage(imageName: string) {
