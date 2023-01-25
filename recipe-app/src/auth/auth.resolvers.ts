@@ -6,12 +6,22 @@ import { User } from 'src/users/models/user.model'
 import { CurrentUser } from './auth.decorator'
 import { AuthService } from './auth.service'
 import { GqlAuthRefreshGuard } from './guards/gql-auth-refresh.guard'
+import { GqlAuthGuard } from './guards/gql-auth.guard'
 import { LoginResult } from './interfaces/login.model'
 import { Tokens } from './interfaces/tokens.model'
 
 @Resolver('Auth')
 export class AuthResolvers {
   constructor(private readonly authService: AuthService) {}
+
+  @Query(returns => Boolean)
+  @UseGuards(GqlAuthGuard)
+  async checkPassword(
+    @CurrentUser() currentUser: User,
+    @Args('password') password: string,
+  ): Promise<boolean> {
+    return await this.authService.checkPassword(currentUser.id, password)
+  }
 
   @Mutation(returns => LoginResult)
   async login(
@@ -28,6 +38,14 @@ export class AuthResolvers {
   @Mutation(returns => Tokens)
   async signUp(@Args('signUpInput') signUpInput: UserInput): Promise<Tokens> {
     return this.authService.signUp(signUpInput)
+  }
+
+  @Mutation(returns => Boolean)
+  async resetPassword(
+    @CurrentUser() currentUser: User,
+    @Args('newPassword') newPassword: string,
+  ): Promise<boolean> {
+    return this.authService.resetPassword(currentUser.id, newPassword)
   }
 
   // There is no username guard here because if the person has the token, they can be any user

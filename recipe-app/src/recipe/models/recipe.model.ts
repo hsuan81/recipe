@@ -18,14 +18,14 @@ export class Recipe {
   @Field()
   title: string
 
-  @Field(type => Difficulty, { nullable: true })
+  @Field(type => Difficulty)
   difficulty: Difficulty[keyof Difficulty]
   // difficulty?: 'DIFFICULT5' | 'DIFFICULT4' | 'MODERATE3' | 'EASY2' | 'EASY1'
 
   @Field(type => [IngredientNum])
   ingredientsNum: IngredientNum[]
 
-  @Field(type => [RecipeStep])
+  @Field(type => [RecipeStep], { nullable: 'items' })
   instructions: RecipeStep[]
 
   @Field(type => Int)
@@ -43,7 +43,7 @@ export class Recipe {
   @Field(type => Int)
   serving: number
 
-  @Field(type => [String])
+  @Field(type => [String], { nullable: 'items' })
   tags: string[]
 
   @Field()
@@ -84,12 +84,12 @@ export class RecipeStep {
   @Field(type => Int)
   stepNum: number
 
-  @Field()
-  instruction: string
+  @Field({ nullable: true })
+  instruction?: string
 
-  @Field()
-  imageName: string
+  @Field({ nullable: true })
+  imageName?: string
 
-  @Field()
-  imageUrl: string
+  @Field({ nullable: true })
+  imageUrl?: string
 }

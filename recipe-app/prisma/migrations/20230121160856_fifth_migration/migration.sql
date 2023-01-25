@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "RecipeStep" ALTER COLUMN "instruction" DROP NOT NULL,
+ALTER COLUMN "imageName" DROP NOT NULL,
+ALTER COLUMN "imageUrl" DROP NOT NULL;

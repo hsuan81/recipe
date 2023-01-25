@@ -26,7 +26,7 @@ export class RecipeInput {
   @Field(type => Int)
   serving: number
 
-  @Field(type => [String])
+  @Field(type => [String], { nullable: 'items' })
   tags: string[]
 }
 
@@ -56,8 +56,8 @@ export class RecipeStepInput {
   @Field({ nullable: true })
   instruction?: string
 
-  @Field({ nullable: true })
-  imageName?: string
+  // @Field({ nullable: true })
+  // imageName?: string
 
   // @Field()
   // url: string

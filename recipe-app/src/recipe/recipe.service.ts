@@ -5,6 +5,7 @@ import {
   Recipe as PrismaRecipe,
   RecipeStep as PrismaRecipeStep,
 } from '@prisma/client'
+import e from 'express'
 import { truncate } from 'fs'
 import { imageUrl, S3Service } from 'src/s3/s3.service'
 import { stream2buffer } from 'src/util/stream2buffer'
@@ -117,7 +118,7 @@ export class RecipeService {
     return this._parseRecipe(createdRecipe, recipeSteps)
   }
 
-  async findById(id: string): Promise<RecipeSummary> {
+  async getById(id: string, currentUserId?: string): Promise<RecipeSummary> {
     const recipe = await this.prisma.recipe.findUnique({
       where: { id },
       include: {
@@ -136,10 +137,36 @@ export class RecipeService {
     if (recipe === null) {
       throw new Error('Recipe not found')
     }
-    return this._parseSummary(recipe)
+    const coverImage = await this.prisma.recipeStep.findFirst({
+      where: {
+        recipeId: recipe.id,
+        stepNum: 0,
+      },
+    })
+
+    if (currentUserId != undefined) {
+      const likedByUser = await this._likedByCurrentUser(id, currentUserId)
+      const basketByUser = await this._basketedByCurrentUser(id, currentUserId)
+      return this._parseSummary(
+        recipe,
+        typeof coverImage?.imageUrl === 'string'
+          ? coverImage.imageUrl
+          : undefined,
+        likedByUser,
+        basketByUser,
+      )
+    }
+
+    return this._parseSummary(
+      recipe,
+      typeof coverImage?.imageUrl === 'string'
+        ? coverImage.imageUrl
+        : undefined,
+    )
   }
 
-  async favorite(userId: string, recipeId: string): Promise<Recipe> {
+  // Like a recipe and return the updated number of likes on this recipe
+  async favorite(userId: string, recipeId: string): Promise<Number> {
     let recipe = await this.prisma.recipe.findUniqueOrThrow({
       where: { id: recipeId },
       include: {
@@ -203,13 +230,14 @@ export class RecipeService {
           },
         },
       })
-      return this._parseRecipe(updatedRecipe, true, undefined)
+      // return this._parseRecipe(updatedRecipe, true, undefined)
     }
 
-    return this._parseRecipe(recipe)
+    // return this._parseRecipe(recipe)
+    return recipe.likesNum
   }
 
-  async unFavorite(userId: string, recipeId: string): Promise<Recipe> {
+  async unFavorite(userId: string, recipeId: string): Promise<Number> {
     let recipe = await this.prisma.recipe.findUniqueOrThrow({
       where: { id: recipeId },
       include: {
@@ -265,13 +293,18 @@ export class RecipeService {
           },
         },
       })
-      return this._parseRecipe(updatedRecipe, false, undefined)
+      // return this._parseRecipe(updatedRecipe, false, undefined)
     }
 
-    return this._parseRecipe(recipe)
+    // return this._parseRecipe(recipe)
+    return recipe.likesNum
   }
 
-  async getByTags(tags: string[], afterId?: string): Promise<RecipeSummary[]> {
+  async getByTags(
+    tags: string[],
+    afterId?: string,
+    currentUserId?: string,
+  ): Promise<RecipeSummary[]> {
     const recipesfromDB = await this.prisma.recipe.findMany({
       where: {
         tags: {
@@ -295,15 +328,22 @@ export class RecipeService {
       take: 20,
       skip: afterId ? 1 : 0,
     })
-    const recipes = recipesfromDB.map(e => {
-      return this._parseSummary(e)
-    })
+    // const recipes = recipesfromDB.map(e => {
+    //   return this._parseSummary(e)
+    // })
+    const recipes = await this._formRecipeSummaries(
+      recipesfromDB,
+      currentUserId,
+    )
     return recipes
   }
+
+  // async getByTagsAuthenticated(tags: string[], afterId?: string, user)
 
   async getByDifficulty(
     difficulty: Difficulty,
     afterId?: string,
+    currentUserId?: string,
   ): Promise<RecipeSummary[]> {
     const recipesfromDB = await this.prisma.recipe.findMany({
       where: {
@@ -326,13 +366,20 @@ export class RecipeService {
       take: 20,
       skip: afterId ? 1 : 0,
     })
-    const recipes = recipesfromDB.map(e => {
-      return this._parseSummary(e)
-    })
+    // const recipes = recipesfromDB.map(e => {
+    //   return this._parseSummary(e)
+    // })
+    const recipes = await this._formRecipeSummaries(
+      recipesfromDB,
+      currentUserId,
+    )
     return recipes
   }
 
-  async getLatest(afterId?: string): Promise<RecipeSummary[]> {
+  async getLatest(
+    afterId?: string,
+    currentUserId?: string,
+  ): Promise<RecipeSummary[]> {
     const recipesfromDB = await this.prisma.recipe.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
@@ -352,10 +399,37 @@ export class RecipeService {
       skip: afterId ? 1 : 0,
     })
 
-    const recipes = recipesfromDB.map(e => {
-      return this._parseSummary(e)
-    })
+    // const coverImage = await this.prisma.recipeStep.findFirst({
+    //   where: {
+    //     recipeId: recipe.id,
+    //     stepNum: 0,
+    //   },
+    // })
+
+    // const recipes = recipesfromDB.map(e => {
+    //   return this._parseSummary(e)
+    // })
+    const recipes = await this._formRecipeSummaries(
+      recipesfromDB,
+      currentUserId,
+    )
     return recipes
+  }
+
+  async getLikesNum(recipeId: string): Promise<Number> {
+    const { likesNum } = await this.prisma.recipe.findUniqueOrThrow({
+      where: { id: recipeId },
+      select: { likesNum: true },
+    })
+    return likesNum
+  }
+
+  async getBasketsNum(recipeId: string): Promise<Number> {
+    const { basketsNum } = await this.prisma.recipe.findUniqueOrThrow({
+      where: { id: recipeId },
+      select: { basketsNum: true },
+    })
+    return basketsNum
   }
 
   async update(id: string, content: RecipeInput): Promise<Recipe> {
@@ -413,7 +487,7 @@ export class RecipeService {
       data: {
         title: content.title,
         difficulty: content.difficulty,
-        instructions: content.instructions,
+        // instructions: content.instructions,
         serving: content.serving,
         tags: content.tags,
       },
@@ -430,10 +504,14 @@ export class RecipeService {
         },
       },
     })
-    return this._parseRecipe(updatedRecipe)
+    const updatedRecipeSteps = await this._updateRecipeInstructions(
+      id,
+      content.instructions,
+    )
+    return this._parseRecipe(updatedRecipe, updatedRecipeSteps)
   }
 
-  async delete(id: string, authorId: string): Promise<Recipe> {
+  async delete(id: string, authorId: string): Promise<RecipeSummary> {
     const { name } = await this.prisma.user.findUniqueOrThrow({
       where: { id: authorId },
     })
@@ -452,7 +530,7 @@ export class RecipeService {
         },
       },
     })
-    return this._parseRecipe(deletedRecipe)
+    return this._parseSummary(deletedRecipe)
   }
 
   async _createInstructions(
@@ -461,22 +539,25 @@ export class RecipeService {
   ): Promise<PrismaRecipeStep[]> {
     let recipeSteps: PrismaRecipeStep[] = []
     for (let i of instructions) {
-      const { filename, mimetype, encoding, createReadStream } = await i.image
-      const stream = createReadStream()
-      const buffer = await stream2buffer(stream)
-      const url = await this.s3Service.uploadImage(filename, buffer)
-      const step = await this.prisma.recipeStep.create({
-        data: {
-          ...i,
-          imageName: url.filename,
-          imageUrl: url.url,
-          recipe: {
-            connect: {
-              id: recipeId,
-            },
-          },
-        },
-      })
+      // if (i.image != null) {
+      //   const { filename, mimetype, encoding, createReadStream } = await i.image
+      //   const stream = createReadStream()
+      //   const buffer = await stream2buffer(stream)
+      //   const url = await this.s3Service.uploadImage(filename, buffer)
+      // }
+      // const step = await this.prisma.recipeStep.create({
+      //   data: {
+      //     ...i,
+      //     imageName: url.filename,
+      //     imageUrl: url.url,
+      //     recipe: {
+      //       connect: {
+      //         id: recipeId,
+      //       },
+      //     },
+      //   },
+      // })
+      const step = await this._createOneInstruction(recipeId, i)
       recipeSteps.push({ ...step })
     }
     return recipeSteps
@@ -486,16 +567,22 @@ export class RecipeService {
     recipeId: string,
     instruction: RecipeStepInput,
   ): Promise<PrismaRecipeStep> {
-    const { filename, mimetype, encoding, createReadStream } =
-      await instruction.image
-    const stream = createReadStream()
-    const buffer = await stream2buffer(stream)
-    const url = await this.s3Service.uploadImage(filename, buffer)
+    let getUrl
+    if (instruction.image != null) {
+      const { filename, mimetype, encoding, createReadStream } =
+        await instruction.image
+      const stream = createReadStream()
+      const buffer = await stream2buffer(stream)
+      const url = await this.s3Service.uploadImage(filename, buffer)
+      getUrl = function () {
+        return url
+      }
+    }
     const step = await this.prisma.recipeStep.create({
       data: {
         ...instruction,
-        imageName: url.filename,
-        imageUrl: url.url,
+        imageName: getUrl?.().filename,
+        imageUrl: getUrl?.().url,
         recipe: {
           connect: {
             id: recipeId,
@@ -505,6 +592,7 @@ export class RecipeService {
     })
     return step
   }
+
   async _deleteOneInstruction(recipeStepId: string) {
     await this.prisma.recipeStep.delete({
       where: {
@@ -512,6 +600,7 @@ export class RecipeService {
       },
     })
   }
+
   async _updateOneInstruction(
     recipeId: string,
     step: RecipeStepInput,
@@ -523,14 +612,17 @@ export class RecipeService {
     // Preprocess the uploaded image
     // If image is not empty, upload it to s3
     let getUrl
-    if (step.imageName !== null && step.image !== null) {
+    if (step.image != null) {
       const { filename, mimetype, encoding, createReadStream } =
         await step.image!
       const stream = createReadStream()
       const buffer = await stream2buffer(stream)
       const url = await this.s3Service.uploadImage(filename, buffer)
       getUrl = function () {
-        return url.url
+        return url
+      }
+      if (storedStep.imageUrl != null) {
+        await this.s3Service.deleteImage(storedStep.imageName!)
       }
     }
 
@@ -546,8 +638,8 @@ export class RecipeService {
           storedStep.instruction !== step.instruction
             ? step.instruction
             : undefined,
-        imageName: step.imageName != null ? step.imageName : undefined,
-        imageUrl: getUrl?.(),
+        imageName: getUrl?.().filename,
+        imageUrl: getUrl?.().url,
       },
     })
     return updatedStep
@@ -585,11 +677,80 @@ export class RecipeService {
     return updatedSteps
   }
 
+  async _likedByCurrentUser(
+    recipeId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const recipes = await this.prisma.favorite.findUnique({
+      where: { userId },
+      select: { recipes: true },
+    })
+    const recipeIds = recipes?.recipes.map(e => e.id)
+    return !!recipeIds?.some(e => e === recipeId)
+  }
+
+  async _basketedByCurrentUser(
+    recipeId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const recipes = await this.prisma.basket.findUnique({
+      where: { userId },
+      select: { recipes: true },
+    })
+    const recipeIds = recipes?.recipes.map(e => e.id)
+    return !!recipeIds?.some(e => e === recipeId)
+  }
+
+  async _formRecipeSummaries(
+    recipes: RecipeDetailsPrisma[],
+    currentUserId?: string,
+  ) {
+    let recipeSummaries: RecipeSummary[] = []
+    for (let i in recipes) {
+      const coverImage = await this.prisma.recipeStep.findFirst({
+        where: {
+          recipeId: recipes[i].id,
+          stepNum: 0,
+        },
+      })
+
+      if (currentUserId != undefined) {
+        const likedByUser = await this._likedByCurrentUser(
+          recipes[i].id,
+          currentUserId,
+        )
+        const basketByUser = await this._basketedByCurrentUser(
+          recipes[i].id,
+          currentUserId,
+        )
+        recipeSummaries.push(
+          this._parseSummary(
+            recipes[i],
+            typeof coverImage?.imageUrl === 'string'
+              ? coverImage.imageUrl
+              : undefined,
+            likedByUser,
+            basketByUser,
+          ),
+        )
+      } else
+        recipeSummaries.push(
+          this._parseSummary(
+            recipes[i],
+            typeof coverImage?.imageUrl === 'string'
+              ? coverImage.imageUrl
+              : undefined,
+          ),
+        )
+    }
+    return recipeSummaries
+  }
+
   _parseRecipe(
     recipeFromPrisma: RecipeDetailsPrisma,
     recipeStepsFromPrisma: PrismaRecipeStep[],
-    userLike: boolean = false,
-    userBasket: boolean = false,
+    likedByCurrentUser: boolean = false,
+    basketedByCurrentUser: boolean = false,
   ): Recipe {
     return {
       id: recipeFromPrisma.id,
@@ -599,16 +760,22 @@ export class RecipeService {
       difficulty: recipeFromPrisma.difficulty,
       // difficulty: recipeFromPrisma.difficulty != null ? recipeFromPrisma.difficulty : undefined,
       ingredientsNum: recipeFromPrisma.ingredientsNum.map(e => ({
-        ingredientId: e.ingredientId,
-        recipeId: e.recipeId,
+        ...e,
+        // ingredientId: e.ingredientId,
+        // recipeId: e.recipeId,
         name: e.ingredient.name,
-        unit: e.unit,
-        value: e.value,
+        // unit: e.unit,
+        // value: e.value,
       })),
-      instructions: recipeStepsFromPrisma,
-      basketedByCurrentUser: userBasket,
+      instructions: recipeStepsFromPrisma.map(e => ({
+        ...e,
+        instruction: e.instruction ?? undefined,
+        imageName: e.imageName ?? undefined,
+        imageUrl: e.imageUrl ?? undefined,
+      })),
+      basketedByCurrentUser: basketedByCurrentUser,
       basketsNum: recipeFromPrisma.basketsNum,
-      likedByCurrentUser: userLike,
+      likedByCurrentUser: likedByCurrentUser,
       likesNum: recipeFromPrisma.likesNum,
       serving: recipeFromPrisma.serving ?? 0,
       tags: recipeFromPrisma.tags,
@@ -621,18 +788,20 @@ export class RecipeService {
 
   _parseSummary(
     recipeFromPrisma: RecipeDetailsPrisma,
-    userLike: boolean = false,
-    userBasket: boolean = false,
+    coverImageUrl?: string,
+    likedByCurrentUser: boolean = false,
+    basketedByCurrentUser: boolean = false,
   ): RecipeSummary {
     return {
       id: recipeFromPrisma.id,
       authorId: recipeFromPrisma.authorId,
       authorName: recipeFromPrisma.author.name,
+      coverImageUrl: coverImageUrl ?? undefined,
       title: recipeFromPrisma.title,
       difficulty: recipeFromPrisma.difficulty,
       basketsNum: recipeFromPrisma.basketsNum,
-      basketedByCurrentUser: userBasket,
-      likedByCurrentUser: userLike,
+      basketedByCurrentUser: basketedByCurrentUser,
+      likedByCurrentUser: likedByCurrentUser,
       likesNum: recipeFromPrisma.likesNum,
       createdAt: recipeFromPrisma.createdAt
         ? recipeFromPrisma.createdAt

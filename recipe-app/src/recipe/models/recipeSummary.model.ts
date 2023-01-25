@@ -15,8 +15,8 @@ export class RecipeSummary {
   @Field()
   authorName: string
 
-  @Field()
-  coverImageUrl: string
+  @Field({ nullable: true })
+  coverImageUrl?: string
 
   @Field()
   title: string

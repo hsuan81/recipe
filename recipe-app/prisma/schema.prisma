@@ -70,13 +70,13 @@ model NumIngredientOnRecipe {
 }
 
 model RecipeStep {
-  id          String @id @default(cuid())
+  id          String  @id @default(cuid())
   recipeId    String
   stepNum     Int
-  instruction String
-  imageName   String
-  imageUrl    String
-  recipe      Recipe @relation(fields: [recipeId], references: [id])
+  instruction String?
+  imageName   String?
+  imageUrl    String?
+  recipe      Recipe  @relation(fields: [recipeId], references: [id])
 }
 
 model Favorite {

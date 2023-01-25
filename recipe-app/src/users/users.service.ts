@@ -112,6 +112,17 @@ export class UsersService {
     return this._parse(user)
   }
 
+  async changePassword(id: string, newPwd: string): Promise<string> {
+    const { password } = await this.prisma.user.update({
+      where: { id },
+      data: { password: newPwd },
+      select: {
+        password: true,
+      },
+    })
+    return password
+  }
+
   async getPassword(id: string): Promise<string> {
     const userPass = await this.prisma.user.findFirstOrThrow({
       where: { id },
@@ -121,6 +132,7 @@ export class UsersService {
     })
     return userPass.password
   }
+
   // ----------------------------------------------------------
   /**
    * Deletes all the users in the database, used for testing

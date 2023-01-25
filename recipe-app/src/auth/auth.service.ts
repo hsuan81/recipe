@@ -60,6 +60,21 @@ export class AuthService {
     return undefined
   }
 
+  async checkPassword(userId: string, password: string): Promise<boolean> {
+    const hashedPassword = await argon2.hash(password)
+    const passwordFromDB = await this.usersService.getPassword(userId)
+    return hashedPassword === passwordFromDB
+  }
+
+  async resetPassword(userId: string, newPassword: string): Promise<boolean> {
+    const hashedPassword = await argon2.hash(newPassword)
+    const updatedPwd = await this.usersService.changePassword(
+      userId,
+      hashedPassword,
+    )
+    return updatedPwd === hashedPassword
+  }
+
   async logout(userId: string): Promise<Boolean> {
     const logoutResult = await this.usersService.resetUserRt(userId)
     return logoutResult === 1
