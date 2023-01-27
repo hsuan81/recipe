@@ -65,8 +65,8 @@ export class RecipeService {
         ingredientsOnRecipe.push({
           ingredientId: createdIngredient.id,
           // name: i.name,
-          unit: i.unit,
-          value: i.value,
+          unit: i.unit != undefined ? i.unit : undefined,
+          value: i.value != undefined ? i.value : undefined,
         })
       } else
         ingredientsOnRecipe.push({
@@ -166,7 +166,7 @@ export class RecipeService {
   }
 
   // Like a recipe and return the updated number of likes on this recipe
-  async favorite(userId: string, recipeId: string): Promise<Number> {
+  async favorite(userId: string, recipeId: string): Promise<number> {
     let recipe = await this.prisma.recipe.findUniqueOrThrow({
       where: { id: recipeId },
       include: {
@@ -237,7 +237,7 @@ export class RecipeService {
     return recipe.likesNum
   }
 
-  async unFavorite(userId: string, recipeId: string): Promise<Number> {
+  async unFavorite(userId: string, recipeId: string): Promise<number> {
     let recipe = await this.prisma.recipe.findUniqueOrThrow({
       where: { id: recipeId },
       include: {
@@ -341,13 +341,15 @@ export class RecipeService {
   // async getByTagsAuthenticated(tags: string[], afterId?: string, user)
 
   async getByDifficulty(
-    difficulty: Difficulty,
+    difficulty: string,
     afterId?: string,
     currentUserId?: string,
   ): Promise<RecipeSummary[]> {
+    const difficultyConverted: Difficulty =
+      Difficulty[difficulty as keyof typeof Difficulty]
     const recipesfromDB = await this.prisma.recipe.findMany({
       where: {
-        difficulty: difficulty,
+        difficulty: difficultyConverted,
       },
       orderBy: { createdAt: 'desc' },
       include: {
@@ -416,7 +418,7 @@ export class RecipeService {
     return recipes
   }
 
-  async getLikesNum(recipeId: string): Promise<Number> {
+  async getLikesNum(recipeId: string): Promise<number> {
     const { likesNum } = await this.prisma.recipe.findUniqueOrThrow({
       where: { id: recipeId },
       select: { likesNum: true },
@@ -424,7 +426,7 @@ export class RecipeService {
     return likesNum
   }
 
-  async getBasketsNum(recipeId: string): Promise<Number> {
+  async getBasketsNum(recipeId: string): Promise<number> {
     const { basketsNum } = await this.prisma.recipe.findUniqueOrThrow({
       where: { id: recipeId },
       select: { basketsNum: true },
@@ -533,7 +535,7 @@ export class RecipeService {
     return this._parseSummary(deletedRecipe)
   }
 
-  async _createInstructions(
+  private async _createInstructions(
     recipeId: string,
     instructions: RecipeStepInput[],
   ): Promise<PrismaRecipeStep[]> {
@@ -563,7 +565,7 @@ export class RecipeService {
     return recipeSteps
   }
 
-  async _createOneInstruction(
+  private async _createOneInstruction(
     recipeId: string,
     instruction: RecipeStepInput,
   ): Promise<PrismaRecipeStep> {
@@ -593,7 +595,7 @@ export class RecipeService {
     return step
   }
 
-  async _deleteOneInstruction(recipeStepId: string) {
+  private async _deleteOneInstruction(recipeStepId: string) {
     await this.prisma.recipeStep.delete({
       where: {
         id: recipeStepId,
@@ -601,7 +603,7 @@ export class RecipeService {
     })
   }
 
-  async _updateOneInstruction(
+  private async _updateOneInstruction(
     recipeId: string,
     step: RecipeStepInput,
   ): Promise<PrismaRecipeStep> {
@@ -645,7 +647,7 @@ export class RecipeService {
     return updatedStep
   }
 
-  async _updateRecipeInstructions(
+  private async _updateRecipeInstructions(
     recipeId: string,
     instructions: RecipeStepInput[],
   ): Promise<PrismaRecipeStep[]> {
@@ -677,7 +679,7 @@ export class RecipeService {
     return updatedSteps
   }
 
-  async _likedByCurrentUser(
+  private async _likedByCurrentUser(
     recipeId: string,
     userId: string,
   ): Promise<boolean> {
@@ -689,19 +691,20 @@ export class RecipeService {
     return !!recipeIds?.some(e => e === recipeId)
   }
 
-  async _basketedByCurrentUser(
+  private async _basketedByCurrentUser(
     recipeId: string,
     userId: string,
   ): Promise<boolean> {
-    const recipes = await this.prisma.basket.findUnique({
+    const basket = await this.prisma.basket.findUnique({
       where: { userId },
-      select: { recipes: true },
+      // select: { recipes: true },
     })
-    const recipeIds = recipes?.recipes.map(e => e.id)
-    return !!recipeIds?.some(e => e === recipeId)
+    // const recipeIds = recipes?.recipes.map(e => e.id)
+    return !!basket?.recipes.includes(recipeId)
+    // return !!recipeIds?.some(e => e === recipeId)
   }
 
-  async _formRecipeSummaries(
+  private async _formRecipeSummaries(
     recipes: RecipeDetailsPrisma[],
     currentUserId?: string,
   ) {
@@ -746,7 +749,7 @@ export class RecipeService {
     return recipeSummaries
   }
 
-  _parseRecipe(
+  private _parseRecipe(
     recipeFromPrisma: RecipeDetailsPrisma,
     recipeStepsFromPrisma: PrismaRecipeStep[],
     likedByCurrentUser: boolean = false,
@@ -764,8 +767,8 @@ export class RecipeService {
         // ingredientId: e.ingredientId,
         // recipeId: e.recipeId,
         name: e.ingredient.name,
-        // unit: e.unit,
-        // value: e.value,
+        unit: e.unit != null ? e.unit : undefined,
+        value: e.value != null ? e.value : undefined,
       })),
       instructions: recipeStepsFromPrisma.map(e => ({
         ...e,
@@ -786,7 +789,7 @@ export class RecipeService {
     }
   }
 
-  _parseSummary(
+  private _parseSummary(
     recipeFromPrisma: RecipeDetailsPrisma,
     coverImageUrl?: string,
     likedByCurrentUser: boolean = false,
@@ -803,6 +806,7 @@ export class RecipeService {
       basketedByCurrentUser: basketedByCurrentUser,
       likedByCurrentUser: likedByCurrentUser,
       likesNum: recipeFromPrisma.likesNum,
+      tags: recipeFromPrisma.tags,
       createdAt: recipeFromPrisma.createdAt
         ? recipeFromPrisma.createdAt
         : recipeFromPrisma.createdAt,

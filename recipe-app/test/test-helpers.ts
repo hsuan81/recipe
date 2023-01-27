@@ -3,7 +3,7 @@ import { mockBotUser, mockUsers } from './_mocks_/mock-user'
 import { mockIngreds } from './_mocks_/mock-ingredients'
 import { mockRecipes } from './_mocks_/mock-recipes'
 import { mockNumIngreds } from './_mocks_/mock-numIngredients'
-import { mockBaskets, mockRecipesInBaskets } from './_mocks_/mock-baskets'
+import { mockBaskets } from './_mocks_/mock-baskets'
 
 class TestHelper {
   async createUsers(prisma: PrismaService) {
@@ -32,19 +32,19 @@ class TestHelper {
   }
 
   async createBaskets(prisma: PrismaService) {
-    await prisma.$transaction(
+    return await prisma.$transaction(
       mockBaskets.map(e => prisma.basket.create({ data: e })),
     )
-    return await prisma.$transaction(
-      mockRecipesInBaskets.map(e =>
-        prisma.basket.update({
-          where: { id: e.id },
-          data: {
-            recipes: { connect: e.recipes },
-          },
-        }),
-      ),
-    )
+    // return await prisma.$transaction(
+    //   mockRecipesInBaskets.map(e =>
+    //     prisma.basket.update({
+    //       where: { id: e.id },
+    //       data: {
+    //         recipes: { connect: e.recipes },
+    //       },
+    //     }),
+    //   ),
+    // )
   }
 }
 export const testHelper = new TestHelper()

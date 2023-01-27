@@ -24,8 +24,9 @@ model User {
 model Basket {
   id      String   @id @default(cuid())
   userId  String   @unique
-  // ingredients Ingredient[]r
-  recipes Recipe[]
+  // ingredients Ingredient[]
+  // recipes Recipe[]
+  recipes String[]
   user    User     @relation(fields: [userId], references: [id])
 }
 
@@ -36,7 +37,7 @@ model Recipe {
   createdAt      DateTime                @default(now())
   updatedAt      DateTime?               @updatedAt
   difficulty     Difficulty              @default(EASY1)
-  baskets        Basket[]
+  // baskets        Basket[]
   basketsNum     Int                     @default(0)
   favorite       Favorite[]
   ingredientsNum NumIngredientOnRecipe[]
@@ -63,8 +64,8 @@ model NumIngredientOnRecipe {
   recipeId     String
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
   recipe       Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  unit         String
-  value        String
+  unit         String?
+  value        String?
 
   @@id([recipeId, ingredientId])
 }

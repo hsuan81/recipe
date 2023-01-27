@@ -42,5 +42,8 @@ export class RecipeSummary {
 
   @Field(type => Boolean)
   basketedByCurrentUser: boolean
+
+  @Field(type => [String], { nullable: 'items' })
+  tags: string[]
   // cover image
 }

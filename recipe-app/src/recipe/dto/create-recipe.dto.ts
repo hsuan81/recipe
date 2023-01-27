@@ -1,7 +1,8 @@
 import { Field, ID, InputType, Int } from '@nestjs/graphql'
 import { Difficulty } from '../enum/difficulty.enum'
 import { FileUpload } from '../interface/fileUpload.interface'
-import GraphQLUpload from 'graphql-upload/GraphQLUpload'
+// import GraphQLUpload from 'graphql-upload-/GraphQLUpload'
+import { GraphQLUpload } from 'graphql-upload-ts'
 
 // import { IsOptional, Length, MaxLength } from 'class-validator';
 // import { RecipeInput, IngredientNumInput } from '../../graphql.schema';
@@ -32,20 +33,20 @@ export class RecipeInput {
 
 @InputType()
 export class IngredientNumInput {
-  @Field(type => ID)
-  ingredientId: string
+  @Field(type => ID, { nullable: true })
+  ingredientId?: string
 
-  @Field(type => ID)
-  recipeId: string
+  @Field(type => ID, { nullable: true })
+  recipeId?: string
 
   @Field()
   name: string
 
-  @Field()
-  unit: string
+  @Field({ nullable: true })
+  unit?: string
 
-  @Field()
-  value: string
+  @Field({ nullable: true })
+  value?: string
 }
 
 @InputType()

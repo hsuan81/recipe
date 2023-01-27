@@ -6,6 +6,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
+    "allowJs": true,
     "target": "es2017",
     "sourceMap": true,
     "outDir": "./dist",
@@ -17,6 +18,10 @@
     "strictBindCallApply": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true
+    // "typeRoots": ["./node_modules/@types"]
+    // "maxNodeModuleJsDepth": 10,
+    // "module": "nodenext"
   },
   "include": ["src/**/*"]
+  // "exclude": ["node_modules"]
 }

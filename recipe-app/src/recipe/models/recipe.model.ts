@@ -66,11 +66,11 @@ export class IngredientNum {
   @Field()
   name: string
 
-  @Field()
-  unit: string
+  @Field({ nullable: true })
+  unit?: string
 
-  @Field()
-  value: string
+  @Field({ nullable: true })
+  value?: string
 }
 
 @ObjectType({ description: 'The instruction of one step and its image.' })

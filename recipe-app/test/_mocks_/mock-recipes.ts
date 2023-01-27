@@ -22,7 +22,7 @@ export const mockRecipes: Recipe[] = [
     // instructions: [],
     createdAt: new Date(),
     updatedAt: new Date(),
-    basketsNum: 0,
+    basketsNum: 1,
     likesNum: 0,
     serving: 0,
     tags: ['aa'],
