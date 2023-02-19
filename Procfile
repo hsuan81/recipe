@@ -1,1 +1,1 @@
-web: cd /recipe-app/ && npm run deploy
+web: cd recipe-app && npm run deploy
