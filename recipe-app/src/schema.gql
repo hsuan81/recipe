@@ -8,15 +8,15 @@ type Recipe {
   authorId: ID!
   authorName: String!
   title: String!
-  difficulty: Difficulty
+  difficulty: Difficulty!
   ingredientsNum: [IngredientNum!]!
-  instructions: [RecipeStep!]!
+  instructions: [RecipeStep]!
   likesNum: Int!
   likedByCurrentUser: Boolean!
   basketedByCurrentUser: Boolean!
   basketsNum: Int!
   serving: Int!
-  tags: [String!]!
+  tags: [String]!
   createdAt: DateTime!
   updatedAt: DateTime
 }
@@ -40,15 +40,18 @@ type IngredientNum {
   ingredientId: ID!
   recipeId: ID!
   name: String!
-  unit: String!
-  value: String!
+  unit: String
+  value: String
 }
 
 """The instruction of one step and its image."""
 type RecipeStep {
-  instruction: String!
-  imageName: String!
-  url: String!
+  id: ID!
+  recipeId: ID!
+  stepNum: Int!
+  instruction: String
+  imageName: String
+  imageUrl: String
 }
 
 """Liked Recipes"""
@@ -70,7 +73,7 @@ type RecipeSummary {
   id: ID!
   authorId: ID!
   authorName: String!
-  coverImageUrl: String!
+  coverImageUrl: String
   title: String!
   difficulty: Difficulty
   basketsNum: Int!
@@ -79,6 +82,7 @@ type RecipeSummary {
   updatedAt: DateTime
   likedByCurrentUser: Boolean!
   basketedByCurrentUser: Boolean!
+  tags: [String]!
 }
 
 """contain access token and refresh token"""
@@ -104,24 +108,29 @@ type Basket {
 
 type Query {
   getRecipeById(id: ID!): RecipeSummary!
-  getLatestRecipes: [RecipeSummary!]!
+  getLatestRecipes(afterId: String): [RecipeSummary!]!
+  getLatestLikeNum(id: ID!): Int!
+  getLatestBasketNum(id: ID!): Int!
   getRecipesByTags(tags: [String!]!, afterId: String): [RecipeSummary!]!
+  getRecipesByDifficulty(difficulty: Difficulty!, afterId: String): [RecipeSummary!]!
   getUserById(id: ID!): User!
   getUserByEmail(email: String!): User!
   me: User!
+  checkPassword(password: String!): Boolean!
   getBasketByUserId(userId: ID!): Basket!
 }
 
 type Mutation {
   createRecipe(content: RecipeInput!): Recipe!
-  likeRecipe(userId: String!, recipeId: String!): Recipe!
-  unLikeRecipe(userId: String!, recipeId: String!): Recipe!
+  likeRecipe(recipeId: String!): Int!
+  unLikeRecipe(recipeId: String!): Int!
   updateRecipe(id: ID!, content: RecipeInput!): Recipe!
-  deleteRecipe(id: ID!): Recipe!
+  deleteRecipe(id: ID!): RecipeSummary!
   createUser(input: UserInput!): User!
   login(loginAttempt: UserInput!): LoginResult!
   logout(userId: String!): Boolean!
   signUp(signUpInput: UserInput!): Tokens!
+  resetPassword(newPassword: String!): Boolean!
   refreshTokens(userId: String!, rt: String!): Tokens!
   addRecipeToBasket(userId: ID!, recipeId: ID!): Basket!
   removeRecipeFromBasket(userId: ID!, recipeId: ID!): Basket!
@@ -134,22 +143,25 @@ input RecipeInput {
   ingredientsNum: [IngredientNumInput!]!
   instructions: [RecipeStepInput!]!
   serving: Int!
-  tags: [String!]!
+  tags: [String]!
 }
 
 input IngredientNumInput {
-  ingredientId: ID!
-  recipeId: ID!
+  ingredientId: ID
+  recipeId: ID
   name: String!
-  unit: String!
-  value: String!
+  unit: String
+  value: String
 }
 
 input RecipeStepInput {
-  instruction: String!
-  imageName: String!
-  url: String!
+  stepNum: Int!
+  instruction: String
+  image: Upload
 }
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
 
 input UserInput {
   email: String!
