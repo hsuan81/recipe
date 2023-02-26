@@ -28,6 +28,7 @@ import { AppConfigService } from './appconfig/appconfig.service'
       // sortSchema: true,
       debug: false,
       playground: false,
+      cors: true, // allow requests from outside networks
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
     }),
     RecipeModule,
