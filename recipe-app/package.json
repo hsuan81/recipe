@@ -9,7 +9,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
-    "deploy": "npm ci && npm run build && npm run start:prod",
+    "deploy": "npm i && npm run build && npm run start:prod",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "seed": "ts-node src/prisma/scripts/seed.ts",
     "start": "nest start",
