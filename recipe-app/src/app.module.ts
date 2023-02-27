@@ -28,7 +28,7 @@ import { AppConfigService } from './appconfig/appconfig.service'
       // sortSchema: true,
       debug: false,
       playground: false,
-      introspection: process.env.NODE_ENV !== 'production',
+      // introspection: process.env.NODE_ENV !== 'production',
       // cors: true, // allow requests from outside networks
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
     }),
